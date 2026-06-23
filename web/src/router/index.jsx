@@ -1,0 +1,52 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import AdminLayout from '../layouts/AdminLayout';
+import Login from '../pages/login';
+import Dashboard from '../pages/dashboard';
+import RoomTypes from '../pages/roomTypes';
+import Rooms from '../pages/rooms';
+import Customers from '../pages/customers';
+import useAuthStore from '../store/authStore';
+
+// 路由守卫组件
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated } = useAuthStore();
+  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+};
+
+const AppRouter = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* 登录页 */}
+        <Route path="/login" element={<Login />} />
+
+        {/* 后台管理 */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <AdminLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="room-types" element={<RoomTypes />} />
+          <Route path="rooms" element={<Rooms />} />
+          <Route path="orders" element={<div style={{color: '#fff'}}>订单管理（开发中）</div>} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="finance" element={<div style={{color: '#fff'}}>财务统计（开发中）</div>} />
+          <Route path="operations" element={<div style={{color: '#fff'}}>运营任务（开发中）</div>} />
+          <Route path="users" element={<div style={{color: '#fff'}}>账号管理（开发中）</div>} />
+          <Route path="settings" element={<div style={{color: '#fff'}}>系统设置（开发中）</div>} />
+        </Route>
+
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default AppRouter;

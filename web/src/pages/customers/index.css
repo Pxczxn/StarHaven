@@ -1,0 +1,17 @@
+.customers {
+  color: var(--text-primary);
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin: 0 0 24px 0;
+}
+
+.customers .ant-card {
+  background: var(--cosmic-card);
+  border: 1px solid var(--cosmic-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
