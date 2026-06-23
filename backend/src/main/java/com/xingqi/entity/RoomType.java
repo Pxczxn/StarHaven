@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class RoomType {
 
     /**
-     * 房型ID
+     * 主键 ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -32,17 +32,17 @@ public class RoomType {
     private BigDecimal defaultPrice;
 
     /**
-     * 可住人数
+     * 最大入住人数
      */
     private Integer capacity;
 
     /**
-     * 床型
+     * 床型（如：1.8m 大床、1.2m 双床）
      */
     private String bedType;
 
     /**
-     * 早餐说明
+     * 早餐（如：双早、单早、无）
      */
     private String breakfast;
 
@@ -52,12 +52,12 @@ public class RoomType {
     private String description;
 
     /**
-     * 房型图片
+     * 房型图片 URL
      */
     private String imageUrl;
 
     /**
-     * 状态：enabled-启用, disabled-禁用
+     * 状态（enabled: 启用, disabled: 停用）
      */
     private String status;
 

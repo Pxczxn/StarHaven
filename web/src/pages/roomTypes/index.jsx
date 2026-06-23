@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Space, Tag, Input, Modal, Form, InputNumber, message, Popconfirm } from 'antd';
+import { Card, Table, Button, Space, Tag, Input, Modal, Form, InputNumber, message, Popconfirm, Segmented } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { getRoomTypes, createRoomType, updateRoomType, deleteRoomType } from '../../api/roomType';
 import { formatDateTime, formatMoney } from '../../utils/format';
@@ -220,7 +220,9 @@ const RoomTypes = () => {
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        width={600}
+        width={860}
+        centered
+        className="room-type-modal"
         destroyOnClose
       >
         <Form
@@ -228,79 +230,78 @@ const RoomTypes = () => {
           layout="vertical"
           initialValues={{ status: 'enabled', capacity: 2 }}
         >
-          <Form.Item
-            label="房型名称"
-            name="name"
-            rules={[{ required: true, message: '请输入房型名称' }]}
-          >
-            <Input placeholder="例如：星河大床房" />
-          </Form.Item>
-
-          <Form.Item
-            label="默认价格"
-            name="defaultPrice"
-            rules={[
-              { required: true, message: '请输入默认价格' },
-              { type: 'number', min: 0, message: '价格必须大于0' }
-            ]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="399"
-              min={0}
-              precision={2}
-              addonAfter="元"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="可住人数"
-            name="capacity"
-            rules={[
-              { required: true, message: '请输入可住人数' },
-              { type: 'number', min: 1, message: '人数必须大于0' }
-            ]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="2"
-              min={1}
-              addonAfter="人"
-            />
-          </Form.Item>
-
-          <Form.Item label="床型" name="bedType">
-            <Input placeholder="例如：1.8m 大床" />
-          </Form.Item>
-
-          <Form.Item label="早餐说明" name="breakfast">
-            <Input placeholder="例如：双早" />
-          </Form.Item>
-
-          <Form.Item label="房型描述" name="description">
-            <TextArea rows={4} placeholder="请输入房型描述" />
-          </Form.Item>
-
-          <Form.Item label="房型图片" name="imageUrl">
-            <ImageUpload />
-          </Form.Item>
-
-          <Form.Item label="状态" name="status">
-            <Input.Group compact>
-              <Button
-                type={form.getFieldValue('status') === 'enabled' ? 'primary' : 'default'}
-                onClick={() => form.setFieldsValue({ status: 'enabled' })}
+          <div className="room-type-form-grid">
+            <div>
+              <Form.Item
+                label="房型名称"
+                name="name"
+                rules={[{ required: true, message: '请输入房型名称' }]}
               >
-                启用
-              </Button>
-              <Button
-                type={form.getFieldValue('status') === 'disabled' ? 'primary' : 'default'}
-                onClick={() => form.setFieldsValue({ status: 'disabled' })}
+                <Input placeholder="例如：星河大床房" />
+              </Form.Item>
+
+              <Form.Item
+                label="默认价格"
+                name="defaultPrice"
+                rules={[
+                  { required: true, message: '请输入默认价格' },
+                  { type: 'number', min: 0, message: '价格必须大于0' }
+                ]}
               >
-                禁用
-              </Button>
-            </Input.Group>
-          </Form.Item>
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="399"
+                  min={0}
+                  precision={2}
+                  addonAfter="元"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="可住人数"
+                name="capacity"
+                rules={[
+                  { required: true, message: '请输入可住人数' },
+                  { type: 'number', min: 1, message: '人数必须大于0' }
+                ]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="2"
+                  min={1}
+                  addonAfter="人"
+                />
+              </Form.Item>
+
+              <Form.Item label="床型" name="bedType">
+                <Input placeholder="例如：1.8m 大床" />
+              </Form.Item>
+
+              <Form.Item label="早餐说明" name="breakfast">
+                <Input placeholder="例如：双早" />
+              </Form.Item>
+            </div>
+
+            <div>
+              <Form.Item label="房型描述" name="description">
+                <TextArea rows={5} placeholder="请输入房型描述" />
+              </Form.Item>
+
+              <Form.Item label="房型图片" name="imageUrl">
+                <ImageUpload />
+              </Form.Item>
+
+              <Form.Item label="状态" name="status">
+                <Segmented
+                  className="status-segmented"
+                  options={[
+                    { label: '启用', value: 'enabled' },
+                    { label: '禁用', value: 'disabled' },
+                  ]}
+                />
+              </Form.Item>
+            </div>
+          </div>
         </Form>
       </Modal>
     </div>

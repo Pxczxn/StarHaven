@@ -384,6 +384,118 @@ code {
   color: var(--text-primary);
 }
 
+.room-modal .ant-modal-content,
+.room-type-modal .ant-modal-content {
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.room-modal .ant-modal-body,
+.room-type-modal .ant-modal-body {
+  overflow: visible;
+  padding-bottom: 12px;
+}
+
+.room-form-grid,
+.room-type-form-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px 24px;
+}
+
+.room-form-grid .ant-form-item,
+.room-type-form-grid .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.room-form-grid textarea.ant-input,
+.room-type-form-grid textarea.ant-input {
+  min-height: 132px;
+  resize: none;
+}
+
+.ant-input-number-group-wrapper {
+  width: 100%;
+}
+
+.ant-input-number-group-wrapper .ant-input-number {
+  width: 100% !important;
+}
+
+.ant-input-number-group .ant-input-number {
+  border-start-end-radius: 0 !important;
+  border-end-end-radius: 0 !important;
+}
+
+.ant-input-number-group-addon {
+  min-width: 48px;
+  padding: 0 12px !important;
+  border: 1px solid var(--cosmic-border) !important;
+  border-left: none !important;
+  border-radius: 0 10px 10px 0 !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  color: var(--text-primary) !important;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ant-segmented {
+  padding: 3px;
+  border: 1px solid var(--cosmic-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-secondary);
+}
+
+.ant-segmented .ant-segmented-item {
+  min-width: 64px;
+  min-height: 36px;
+  border-radius: 9px;
+  color: var(--text-secondary);
+  line-height: 36px;
+}
+
+.ant-segmented .ant-segmented-item-label {
+  min-height: 36px;
+  line-height: 36px;
+  padding: 0 14px;
+}
+
+.ant-segmented .ant-segmented-thumb {
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.18));
+  border: 1px solid rgba(139, 92, 246, 0.32);
+  box-shadow: none;
+}
+
+.ant-segmented .ant-segmented-item-selected {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .room-modal,
+  .room-type-modal {
+    max-width: calc(100vw - 32px);
+  }
+
+  .room-form-grid,
+  .room-type-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .room-modal .ant-modal-content,
+  .room-type-modal .ant-modal-content {
+    max-height: calc(100vh - 32px);
+  }
+
+  .room-modal .ant-modal-body,
+  .room-type-modal .ant-modal-body {
+    overflow-y: auto;
+  }
+}
+
 /* 表单 */
 .ant-form-item-label > label {
   color: var(--text-secondary);
@@ -426,6 +538,8 @@ code {
 .ant-input-search {
   --search-height: 44px;
   height: var(--search-height);
+  display: inline-flex;
+  align-items: stretch;
 }
 
 .ant-input-search .ant-input-group,
@@ -433,9 +547,18 @@ code {
 .ant-input-search .ant-space-compact {
   display: flex;
   height: var(--search-height);
+  width: 100%;
   align-items: stretch;
   box-shadow: none !important;
   filter: none !important;
+}
+
+.ant-input-search .ant-space-compact .ant-space-compact-item {
+  height: var(--search-height);
+}
+
+.ant-input-search .ant-space-compact .ant-space-compact-item:not(:first-child) {
+  margin-left: 0 !important;
 }
 
 .ant-input-search .ant-input-group-addon {
@@ -446,30 +569,56 @@ code {
 
 .ant-input-search .ant-input-affix-wrapper {
   height: var(--search-height) !important;
+  min-height: var(--search-height) !important;
   border-radius: 12px 0 0 12px !important;
+  border-color: var(--cosmic-border) !important;
   border-right: none !important;
+  padding: 0 12px !important;
   box-shadow: none !important;
   outline: none !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-.ant-input-search .ant-input {
+.ant-input-search .ant-input-affix-wrapper .ant-input,
+.ant-input-search .ant-input-group .ant-input {
   height: calc(var(--search-height) - 2px) !important;
+  min-height: calc(var(--search-height) - 2px) !important;
+  padding: 0 !important;
   border: none !important;
+  border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  outline: none !important;
+  line-height: calc(var(--search-height) - 2px) !important;
 }
 
 .ant-input-search .ant-input-search-button {
   width: var(--search-height) !important;
   height: var(--search-height) !important;
   min-width: var(--search-height) !important;
+  min-height: var(--search-height) !important;
+  margin: 0 !important;
   padding: 0 !important;
   border-radius: 0 12px 12px 0 !important;
-  border-color: var(--cosmic-border) !important;
-  border-left-color: rgba(255, 255, 255, 0.03) !important;
+  border-top: 1px solid var(--cosmic-border) !important;
+  border-right: 1px solid var(--cosmic-border) !important;
+  border-bottom: 1px solid var(--cosmic-border) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.03) !important;
   background: rgba(255, 255, 255, 0.025) !important;
   color: var(--text-secondary) !important;
   box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.ant-input-search .ant-input-search-button > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ant-input-search .ant-input-search-button:hover {
@@ -479,8 +628,34 @@ code {
 }
 
 /* 按钮 */
+.ant-btn {
+  height: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  line-height: 1;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.ant-btn .ant-btn-icon,
+.ant-btn > .anticon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.ant-space {
+  align-items: center;
+}
+
 .ant-btn-primary {
   height: 44px;
+  min-height: 44px;
   border-radius: 12px;
   border: 1px solid rgba(139, 92, 246, 0.34);
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.14));

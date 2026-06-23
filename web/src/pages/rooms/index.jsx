@@ -5,6 +5,7 @@ import { getRooms, createRoom, updateRoom, deleteRoom, updateRoomStatus } from '
 import { getRoomTypes } from '../../api/roomType';
 import { formatDateTime, formatMoney } from '../../utils/format';
 import { ROOM_STATUS, ROOM_STATUS_COLOR } from '../../utils/constants';
+import ImageUpload from '../../components/ImageUpload';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -305,7 +306,9 @@ const Rooms = () => {
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        width={700}
+        width={900}
+        centered
+        className="room-modal"
         destroyOnClose
       >
         <Form
@@ -313,86 +316,92 @@ const Rooms = () => {
           layout="vertical"
           initialValues={{ status: 'available', capacity: 2 }}
         >
-          <Form.Item
-            label="房间号"
-            name="roomNo"
-            rules={[{ required: true, message: '请输入房间号' }]}
-          >
-            <Input placeholder="例如：101" />
-          </Form.Item>
+          <div className="room-form-grid">
+            <div>
+              <Form.Item
+                label="房间号"
+                name="roomNo"
+                rules={[{ required: true, message: '请输入房间号' }]}
+              >
+                <Input placeholder="例如：101" />
+              </Form.Item>
 
-          <Form.Item
-            label="房间名称"
-            name="name"
-            rules={[{ required: true, message: '请输入房间名称' }]}
-          >
-            <Input placeholder="例如：星河大床房-101" />
-          </Form.Item>
+              <Form.Item
+                label="房间名称"
+                name="name"
+                rules={[{ required: true, message: '请输入房间名称' }]}
+              >
+                <Input placeholder="例如：星河大床房-101" />
+              </Form.Item>
 
-          <Form.Item
-            label="房型"
-            name="roomTypeId"
-            rules={[{ required: true, message: '请选择房型' }]}
-          >
-            <Select placeholder="请选择房型">
-              {roomTypes.map(type => (
-                <Option key={type.id} value={type.id}>{type.name}</Option>
-              ))}
-            </Select>
-          </Form.Item>
+              <Form.Item
+                label="房型"
+                name="roomTypeId"
+                rules={[{ required: true, message: '请选择房型' }]}
+              >
+                <Select placeholder="请选择房型">
+                  {roomTypes.map(type => (
+                    <Option key={type.id} value={type.id}>{type.name}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
 
-          <Form.Item label="楼层" name="floor">
-            <Input placeholder="例如：1F" />
-          </Form.Item>
+              <Form.Item label="楼层" name="floor">
+                <Input placeholder="例如：1F" />
+              </Form.Item>
 
-          <Form.Item label="面积" name="area">
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="32"
-              min={0}
-              precision={1}
-              addonAfter="㎡"
-            />
-          </Form.Item>
+              <Form.Item label="面积" name="area">
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="32"
+                  min={0}
+                  precision={1}
+                  addonAfter="㎡"
+                />
+              </Form.Item>
+            </div>
 
-          <Form.Item
-            label="可住人数"
-            name="capacity"
-            rules={[{ required: true, message: '请输入可住人数' }]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="2"
-              min={1}
-              addonAfter="人"
-            />
-          </Form.Item>
+            <div>
+              <Form.Item
+                label="可住人数"
+                name="capacity"
+                rules={[{ required: true, message: '请输入可住人数' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="2"
+                  min={1}
+                  addonAfter="人"
+                />
+              </Form.Item>
 
-          <Form.Item
-            label="价格"
-            name="price"
-            rules={[{ required: true, message: '请输入价格' }]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              placeholder="399"
-              min={0}
-              precision={2}
-              addonAfter="元"
-            />
-          </Form.Item>
+              <Form.Item
+                label="价格"
+                name="price"
+                rules={[{ required: true, message: '请输入价格' }]}
+              >
+                <InputNumber
+                  style={{ width: '100%' }}
+                  placeholder="399"
+                  min={0}
+                  precision={2}
+                  addonAfter="元"
+                />
+              </Form.Item>
 
-          <Form.Item label="配套设施" name="facilities">
-            <Input placeholder="例如：独立卫浴,投影,浴缸" />
-          </Form.Item>
+              <Form.Item label="配套设施" name="facilities">
+                <Input placeholder="例如：独立卫浴,投影,浴缸" />
+              </Form.Item>
 
-          <Form.Item label="房间图片" name="imageUrl">
-            <Input placeholder="图片URL地址" />
-          </Form.Item>
+              <Form.Item label="房间图片" name="imageUrl">
+                <ImageUpload />
+              </Form.Item>
 
-          <Form.Item label="备注" name="remark">
-            <TextArea rows={3} placeholder="请输入备注" />
-          </Form.Item>
+              <Form.Item label="备注" name="remark">
+                <TextArea rows={3} placeholder="请输入备注" />
+              </Form.Item>
+            </div>
+          </div>
         </Form>
       </Modal>
 
