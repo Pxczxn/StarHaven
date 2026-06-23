@@ -5,6 +5,7 @@ import Login from '../pages/login';
 import Dashboard from '../pages/dashboard';
 import RoomTypes from '../pages/roomTypes';
 import Rooms from '../pages/rooms';
+import Orders from '../pages/orders';
 import Customers from '../pages/customers';
 import useAuthStore from '../store/authStore';
 
@@ -34,7 +35,7 @@ const AppRouter = () => {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="room-types" element={<RoomTypes />} />
           <Route path="rooms" element={<Rooms />} />
-          <Route path="orders" element={<div style={{color: '#fff'}}>订单管理（开发中）</div>} />
+          <Route path="orders" element={<Orders />} />
           <Route path="customers" element={<Customers />} />
           <Route path="finance" element={<div style={{color: '#fff'}}>财务统计（开发中）</div>} />
           <Route path="operations" element={<div style={{color: '#fff'}}>运营任务（开发中）</div>} />

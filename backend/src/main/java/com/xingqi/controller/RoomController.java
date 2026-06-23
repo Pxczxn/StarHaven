@@ -1,80 +1,71 @@
 package com.xingqi.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xingqi.common.ApiResponse;
 import com.xingqi.common.PageResponse;
-import com.xingqi.dto.request.RoomRequest;
-import com.xingqi.dto.request.RoomStatusRequest;
 import com.xingqi.entity.Room;
 import com.xingqi.service.RoomService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 房间控制器
  */
 @RestController
 @RequestMapping("/api/rooms")
+@RequiredArgsConstructor
 public class RoomController {
 
-    @Autowired
-    private RoomService roomService;
+    private final RoomService roomService;
 
     /**
      * 分页查询房间
      */
     @GetMapping
-    public ApiResponse<PageResponse<Room>> list(
-            @RequestParam(defaultValue = "1") long page,
-            @RequestParam(defaultValue = "10") long pageSize,
+    public ApiResponse<PageResponse<Room>> page(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long roomTypeId
     ) {
-        PageResponse<Room> result = roomService.list(page, pageSize, keyword, status, roomTypeId);
-        return ApiResponse.success(result);
+        Page<Room> result = roomService.page(page, pageSize, keyword, status, roomTypeId);
+        return ApiResponse.success(PageResponse.of(result));
     }
 
     /**
-     * 获取房间详情
+     * 查询所有房间（用于下拉选择）
+     */
+    @GetMapping("/all")
+    public ApiResponse<List<Room>> listAll() {
+        return ApiResponse.success(roomService.listAll());
+    }
+
+    /**
+     * 根据 ID 查询房间
      */
     @GetMapping("/{id}")
     public ApiResponse<Room> getById(@PathVariable Long id) {
-        Room room = roomService.getById(id);
-        return ApiResponse.success(room);
+        return ApiResponse.success(roomService.getById(id));
     }
 
     /**
-     * 创建房间
+     * 新增房间
      */
     @PostMapping
-    public ApiResponse<Room> create(@Valid @RequestBody RoomRequest request) {
-        Room room = roomService.create(request);
-        return ApiResponse.success("创建成功", room);
+    public ApiResponse<Room> create(@Valid @RequestBody Room room) {
+        return ApiResponse.success(roomService.create(room));
     }
 
     /**
      * 更新房间
      */
     @PutMapping("/{id}")
-    public ApiResponse<Room> update(
-            @PathVariable Long id,
-            @Valid @RequestBody RoomRequest request
-    ) {
-        Room room = roomService.update(id, request);
-        return ApiResponse.success("更新成功", room);
-    }
-
-    /**
-     * 修改房间状态
-     */
-    @PutMapping("/{id}/status")
-    public ApiResponse<Room> updateStatus(
-            @PathVariable Long id,
-            @Valid @RequestBody RoomStatusRequest request
-    ) {
-        Room room = roomService.updateStatus(id, request.getStatus());
-        return ApiResponse.success("状态更新成功", room);
+    public ApiResponse<Room> update(@PathVariable Long id, @Valid @RequestBody Room room) {
+        return ApiResponse.success(roomService.update(id, room));
     }
 
     /**
@@ -84,5 +75,14 @@ public class RoomController {
     public ApiResponse<Void> delete(@PathVariable Long id) {
         roomService.delete(id);
         return ApiResponse.success("删除成功", null);
+    }
+
+    /**
+     * 更新房间状态
+     */
+    @PutMapping("/{id}/status")
+    public ApiResponse<Void> updateStatus(@PathVariable Long id, @RequestParam String status) {
+        roomService.updateStatus(id, status);
+        return ApiResponse.success("状态更新成功", null);
     }
 }

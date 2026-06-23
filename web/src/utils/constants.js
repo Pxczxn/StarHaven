@@ -29,6 +29,7 @@ export const ORDER_STATUS = {
   pending: '待确认',
   reserved: '已预订',
   occupied: '已入住',
+  checked_out: '已退房',
   completed: '已完成',
   cancelled: '已取消',
   refunded: '已退款',
@@ -41,6 +42,7 @@ export const ORDER_STATUS_COLOR = {
   pending: 'warning',
   reserved: 'processing',
   occupied: 'success',
+  checked_out: 'default',
   completed: 'default',
   cancelled: 'error',
   refunded: 'default',
@@ -75,7 +77,7 @@ export const ORDER_SOURCE = {
   wechat: '微信',
   ctrip: '携程',
   meituan: '美团',
-  h5: 'H5',
+  uniapp: 'UniApp',
   other: '其他',
 };
 

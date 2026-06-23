@@ -1,20 +1,16 @@
 package com.xingqi.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xingqi.common.BusinessException;
-import com.xingqi.common.PageResponse;
-import com.xingqi.dto.request.CustomerRequest;
 import com.xingqi.entity.BookingOrder;
 import com.xingqi.entity.Customer;
 import com.xingqi.mapper.BookingOrderMapper;
 import com.xingqi.mapper.CustomerMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,45 +20,34 @@ import java.util.List;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CustomerService {
 
-    @Autowired
-    private CustomerMapper customerMapper;
-
-    @Autowired
-    private BookingOrderMapper bookingOrderMapper;
+    private final CustomerMapper customerMapper;
+    private final BookingOrderMapper bookingOrderMapper;
 
     /**
      * 分页查询客户
      */
-    public PageResponse<Customer> list(long page, long pageSize, String keyword) {
-        Page<Customer> pageParam = new Page<>(page, pageSize);
+    public Page<Customer> page(Integer pageNum, Integer pageSize, String keyword) {
+        Page<Customer> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
 
         // 关键词搜索（姓名、手机号、证件号）
-        if (StringUtils.hasText(keyword)) {
-            wrapper.and(w -> w
-                    .like(Customer::getName, keyword)
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w.like(Customer::getName, keyword)
                     .or().like(Customer::getPhone, keyword)
-                    .or().like(Customer::getIdNumber, keyword)
-            );
+                    .or().like(Customer::getIdNumber, keyword));
         }
 
-        // 按创建时间倒序
-        wrapper.orderByDesc(Customer::getCreatedAt);
+        // 按 ID 升序，保持列表稳定展示
+        wrapper.orderByAsc(Customer::getId);
 
-        IPage<Customer> result = customerMapper.selectPage(pageParam, wrapper);
-
-        return new PageResponse<>(
-                result.getRecords(),
-                result.getTotal(),
-                result.getCurrent(),
-                result.getSize()
-        );
+        return customerMapper.selectPage(page, wrapper);
     }
 
     /**
-     * 获取客户详情
+     * 根据 ID 查询客户
      */
     public Customer getById(Long id) {
         Customer customer = customerMapper.selectById(id);
@@ -73,27 +58,41 @@ public class CustomerService {
     }
 
     /**
-     * 创建客户
+     * 根据手机号查询客户
      */
-    public Customer create(CustomerRequest request) {
+    public Customer getByPhone(String phone) {
+        LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Customer::getPhone, phone);
+        return customerMapper.selectOne(wrapper);
+    }
+
+    /**
+     * 新增客户
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Customer create(Customer customer) {
         // 检查手机号是否已存在
-        if (StringUtils.hasText(request.getPhone())) {
+        if (customer.getPhone() != null) {
             LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(Customer::getPhone, request.getPhone());
+            wrapper.eq(Customer::getPhone, customer.getPhone());
             if (customerMapper.selectCount(wrapper) > 0) {
-                throw BusinessException.badRequest("该手机号已存在");
+                throw BusinessException.badRequest("手机号已存在");
             }
         }
 
-        Customer customer = new Customer();
-        BeanUtils.copyProperties(request, customer);
+        // 检查证件号是否已存在
+        if (customer.getIdNumber() != null && !customer.getIdNumber().trim().isEmpty()) {
+            LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Customer::getIdNumber, customer.getIdNumber());
+            if (customerMapper.selectCount(wrapper) > 0) {
+                throw BusinessException.badRequest("证件号已存在");
+            }
+        }
 
-        LocalDateTime now = LocalDateTime.now();
-        customer.setCreatedAt(now);
-        customer.setUpdatedAt(now);
+        customer.setCreatedAt(LocalDateTime.now());
+        customer.setUpdatedAt(LocalDateTime.now());
 
         customerMapper.insert(customer);
-
         log.info("创建客户成功: {} - {}", customer.getName(), customer.getPhone());
         return customer;
     }
@@ -101,24 +100,36 @@ public class CustomerService {
     /**
      * 更新客户
      */
-    public Customer update(Long id, CustomerRequest request) {
-        Customer customer = getById(id);
+    @Transactional(rollbackFor = Exception.class)
+    public Customer update(Long id, Customer customer) {
+        Customer existing = getById(id);
 
         // 检查手机号是否与其他客户重复
-        if (StringUtils.hasText(request.getPhone()) && !request.getPhone().equals(customer.getPhone())) {
+        if (customer.getPhone() != null && !existing.getPhone().equals(customer.getPhone())) {
             LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(Customer::getPhone, request.getPhone());
+            wrapper.eq(Customer::getPhone, customer.getPhone());
             wrapper.ne(Customer::getId, id);
             if (customerMapper.selectCount(wrapper) > 0) {
-                throw BusinessException.badRequest("该手机号已存在");
+                throw BusinessException.badRequest("手机号已存在");
             }
         }
 
-        BeanUtils.copyProperties(request, customer);
+        // 检查证件号是否与其他客户重复
+        if (customer.getIdNumber() != null && !customer.getIdNumber().trim().isEmpty()
+                && !customer.getIdNumber().equals(existing.getIdNumber())) {
+            LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(Customer::getIdNumber, customer.getIdNumber());
+            wrapper.ne(Customer::getId, id);
+            if (customerMapper.selectCount(wrapper) > 0) {
+                throw BusinessException.badRequest("证件号已存在");
+            }
+        }
+
+        customer.setId(id);
+        customer.setCreatedAt(existing.getCreatedAt());
         customer.setUpdatedAt(LocalDateTime.now());
 
         customerMapper.updateById(customer);
-
         log.info("更新客户成功: {} - {}", customer.getName(), customer.getPhone());
         return customer;
     }
@@ -126,27 +137,27 @@ public class CustomerService {
     /**
      * 删除客户
      */
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) {
         Customer customer = getById(id);
 
-        // 检查是否有关联订单
+        // 检查是否有订单关联该客户
         LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BookingOrder::getCustomerId, id);
         long count = bookingOrderMapper.selectCount(wrapper);
         if (count > 0) {
-            throw BusinessException.conflict("该客户有 " + count + " 个关联订单，无法删除");
+            throw BusinessException.badRequest("该客户有 " + count + " 个订单，无法删除");
         }
 
         customerMapper.deleteById(id);
-
         log.info("删除客户成功: {} - {}", customer.getName(), customer.getPhone());
     }
 
     /**
-     * 获取客户的历史订单
+     * 查询客户的历史订单
      */
-    public List<BookingOrder> getOrders(Long customerId) {
-        Customer customer = getById(customerId);
+    public List<BookingOrder> getOrdersByCustomerId(Long customerId) {
+        getById(customerId); // 检查客户是否存在
 
         LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BookingOrder::getCustomerId, customerId);
@@ -156,40 +167,30 @@ public class CustomerService {
     }
 
     /**
-     * 根据手机号查找或创建客户
-     * 用于订单创建时的客户沉淀
+     * 根据手机号自动创建或获取客户
      */
-    public Customer findOrCreateByPhone(String phone, String name) {
-        // 先查找是否已存在
-        LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Customer::getPhone, phone);
-        Customer customer = customerMapper.selectOne(wrapper);
-
-        if (customer != null) {
-            // 如果客户已存在，更新姓名（以最新信息为准）
-            if (StringUtils.hasText(name) && !name.equals(customer.getName())) {
-                customer.setName(name);
+    @Transactional(rollbackFor = Exception.class)
+    public Customer getOrCreateByPhone(String phone, String name, String idNumber) {
+        Customer customer = getByPhone(phone);
+        if (customer == null) {
+            customer = new Customer();
+            customer.setPhone(phone);
+            customer.setName(name);
+            customer.setIdNumber(idNumber);
+            customer.setCreatedAt(LocalDateTime.now());
+            customer.setUpdatedAt(LocalDateTime.now());
+            customerMapper.insert(customer);
+            log.info("自动创建客户: {} - {} - {}", name, phone, idNumber);
+        } else {
+            // 如果客户已存在但身份证号为空，则更新身份证号
+            if (idNumber != null && !idNumber.trim().isEmpty() &&
+                (customer.getIdNumber() == null || customer.getIdNumber().trim().isEmpty())) {
+                customer.setIdNumber(idNumber);
                 customer.setUpdatedAt(LocalDateTime.now());
                 customerMapper.updateById(customer);
-                log.info("更新客户姓名: {} -> {}", customer.getPhone(), name);
+                log.info("更新客户身份证号: {} - {}", name, idNumber);
             }
-            return customer;
         }
-
-        // 不存在则创建新客户
-        customer = new Customer();
-        customer.setName(name);
-        customer.setPhone(phone);
-        customer.setSource("h5");
-        customer.setLevel("normal");
-
-        LocalDateTime now = LocalDateTime.now();
-        customer.setCreatedAt(now);
-        customer.setUpdatedAt(now);
-
-        customerMapper.insert(customer);
-
-        log.info("自动创建客户: {} - {}", name, phone);
         return customer;
     }
 }

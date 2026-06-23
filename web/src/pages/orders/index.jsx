@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Tag, Input, Select, DatePicker, Modal, message, Popconfirm } from 'antd';
 import { PlusOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined, CheckOutlined, LoginOutlined, LogoutOutlined, CloseOutlined } from '@ant-design/icons';
 import { getOrders, deleteOrder, confirmOrder, checkInOrder, checkOutOrder, cancelOrder } from '../../api/order';
-import { ORDER_STATUS, ORDER_SOURCE, PAYMENT_METHOD } from '../../utils/orderConstants';
+import { ORDER_STATUS, ORDER_SOURCE, PAYMENT_METHOD } from '../../utils/constants';
 import OrderFormModal from './OrderFormModal';
 import OrderDetailModal from './OrderDetailModal';
 import CancelOrderModal from './CancelOrderModal';
@@ -131,6 +131,26 @@ const OrderList = () => {
   const handlePayment = (record) => {
     setCurrentOrder(record);
     setPaymentModalVisible(true);
+  };
+
+  const handleCancelSuccess = async () => {
+    if (!currentOrder) return;
+    try {
+      await cancelOrder(currentOrder.id);
+      message.success('订单已取消');
+      setCancelModalVisible(false);
+      setCurrentOrder(null);
+      fetchOrders();
+    } catch (error) {
+      message.error(error.message || '取消失败');
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    message.success('收款成功');
+    setPaymentModalVisible(false);
+    setCurrentOrder(null);
+    fetchOrders();
   };
 
   const getStatusColor = (status) => {
@@ -293,7 +313,7 @@ const OrderList = () => {
             </Button>
           )}
 
-          {record.status !== 'cancelled' && record.status !== 'completed' && (
+          {record.status !== 'cancelled' && record.status !== 'completed' && record.paymentStatus !== 'paid' && (
             <Button
               type="link"
               size="small"
@@ -370,7 +390,6 @@ const OrderList = () => {
         dataSource={orders}
         rowKey="id"
         loading={loading}
-        scroll={{ x: 1800 }}
         pagination={{
           current: page,
           pageSize: pageSize,
@@ -416,9 +435,7 @@ const OrderList = () => {
           setCurrentOrder(null);
         }}
         onSuccess={() => {
-          setCancelModalVisible(false);
-          setCurrentOrder(null);
-          fetchOrders();
+          handleCancelSuccess();
         }}
       />
 
@@ -430,9 +447,7 @@ const OrderList = () => {
           setCurrentOrder(null);
         }}
         onSuccess={() => {
-          setPaymentModalVisible(false);
-          setCurrentOrder(null);
-          fetchOrders();
+          handlePaymentSuccess();
         }}
       />
     </div>

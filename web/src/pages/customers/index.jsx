@@ -1,12 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Space, Input, Modal, Form, Select, message, Popconfirm, Drawer } from 'antd';
+import { Card, Table, Button, Space, Input, Modal, Form, Select, message, Popconfirm, Drawer, DatePicker } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined } from '@ant-design/icons';
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer, getCustomerOrders } from '../../api/customer';
 import { formatDateTime, formatPhone, formatIdNumber } from '../../utils/format';
 import { ORDER_STATUS, ORDER_STATUS_COLOR } from '../../utils/constants';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
 
 const { TextArea } = Input;
 const { Option } = Select;
+
+const normalizePhone = (value = '') => value.replace(/\D/g, '').slice(0, 11);
+const normalizeIdNumber = (value = '') => value.replace(/[^0-9xX]/g, '').slice(0, 18).toUpperCase();
+
+const parseBirthdayFromIdNumber = (idNumber) => {
+  let birthday = '';
+
+  if (/^\d{17}[\dX]$/.test(idNumber)) {
+    birthday = `${idNumber.slice(6, 10)}-${idNumber.slice(10, 12)}-${idNumber.slice(12, 14)}`;
+  } else if (/^\d{15}$/.test(idNumber)) {
+    birthday = `19${idNumber.slice(6, 8)}-${idNumber.slice(8, 10)}-${idNumber.slice(10, 12)}`;
+  } else {
+    return null;
+  }
+
+  const parsed = dayjs(birthday, 'YYYY-MM-DD', true);
+  return parsed.isValid() && !parsed.isAfter(dayjs(), 'day') ? parsed : null;
+};
 
 const Customers = () => {
   const [loading, setLoading] = useState(false);
@@ -45,7 +67,10 @@ const Customers = () => {
   const handleOpenModal = (record) => {
     if (record) {
       setEditingId(record.id);
-      form.setFieldsValue(record);
+      form.setFieldsValue({
+        ...record,
+        birthday: record.birthday ? dayjs(record.birthday) : null,
+      });
     } else {
       setEditingId(null);
       form.resetFields();
@@ -57,12 +82,16 @@ const Customers = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const submitValues = {
+        ...values,
+        birthday: values.birthday ? values.birthday.format('YYYY-MM-DD') : undefined,
+      };
 
       if (editingId) {
-        await updateCustomer(editingId, values);
+        await updateCustomer(editingId, submitValues);
         message.success('更新成功');
       } else {
-        await createCustomer(values);
+        await createCustomer(submitValues);
         message.success('创建成功');
       }
 
@@ -107,12 +136,12 @@ const Customers = () => {
     {
       title: 'ID',
       dataIndex: 'id',
-      width: 80,
+      width: 70,
     },
     {
       title: '姓名',
       dataIndex: 'name',
-      width: 120,
+      width: 110,
     },
     {
       title: '性别',
@@ -122,18 +151,18 @@ const Customers = () => {
     {
       title: '手机号',
       dataIndex: 'phone',
-      width: 150,
+      width: 140,
       render: (phone) => formatPhone(phone),
     },
     {
       title: '证件类型',
       dataIndex: 'idType',
-      width: 100,
+      width: 110,
     },
     {
       title: '证件号码',
       dataIndex: 'idNumber',
-      width: 180,
+      width: 160,
       render: (idNumber) => formatIdNumber(idNumber),
     },
     {
@@ -149,14 +178,13 @@ const Customers = () => {
     {
       title: '创建时间',
       dataIndex: 'createdAt',
-      width: 180,
+      width: 170,
       render: (time) => formatDateTime(time),
     },
     {
       title: '操作',
       key: 'action',
-      width: 220,
-      fixed: 'right',
+      width: 210,
       render: (_, record) => (
         <Space>
           <Button
@@ -263,7 +291,6 @@ const Customers = () => {
           dataSource={dataSource}
           rowKey="id"
           loading={loading}
-          scroll={{ x: 1400 }}
           pagination={{
             current: page,
             pageSize: pageSize,
@@ -284,75 +311,110 @@ const Customers = () => {
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        size="large"
-        destroyOnClose
+        width={860}
+        centered
+        className="customer-modal"
+        destroyOnHidden
       >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            label="客户姓名"
-            name="name"
-            rules={[{ required: true, message: '请输入客户姓名' }]}
-          >
-            <Input placeholder="请输入客户姓名" />
-          </Form.Item>
+        <Form
+          form={form}
+          layout="vertical"
+          onValuesChange={(changedValues, allValues) => {
+            if (!('idNumber' in changedValues) && !('idType' in changedValues)) {
+              return;
+            }
 
-          <Form.Item label="性别" name="gender">
-            <Select placeholder="请选择性别" allowClear>
-              <Option value="男">男</Option>
-              <Option value="女">女</Option>
-            </Select>
-          </Form.Item>
+            if (allValues.idType !== '身份证') {
+              return;
+            }
 
-          <Form.Item
-            label="手机号"
-            name="phone"
-            rules={[
-              { required: true, message: '请输入手机号' },
-              { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }
-            ]}
-          >
-            <Input placeholder="请输入手机号" />
-          </Form.Item>
+            const birthday = parseBirthdayFromIdNumber(allValues.idNumber || '');
+            if (birthday) {
+              form.setFieldsValue({ birthday });
+            }
+          }}
+        >
+          <div className="customer-form-grid">
+            <div>
+              <Form.Item
+                label="客户姓名"
+                name="name"
+                rules={[{ required: true, message: '请输入客户姓名' }]}
+              >
+                <Input placeholder="请输入客户姓名" />
+              </Form.Item>
 
-          <Form.Item label="证件类型" name="idType">
-            <Select placeholder="请选择证件类型" allowClear>
-              <Option value="身份证">身份证</Option>
-              <Option value="护照">护照</Option>
-              <Option value="港澳通行证">港澳通行证</Option>
-              <Option value="台湾通行证">台湾通行证</Option>
-            </Select>
-          </Form.Item>
+              <Form.Item label="性别" name="gender">
+                <Select placeholder="请选择性别" allowClear>
+                  <Option value="男">男</Option>
+                  <Option value="女">女</Option>
+                </Select>
+              </Form.Item>
 
-          <Form.Item label="证件号码" name="idNumber">
-            <Input placeholder="请输入证件号码" />
-          </Form.Item>
+              <Form.Item
+                label="手机号"
+                name="phone"
+                normalize={normalizePhone}
+                rules={[
+                  { required: true, message: '请输入手机号' },
+                  { len: 11, message: '手机号必须为 11 位数字' },
+                  { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }
+                ]}
+              >
+                <Input inputMode="numeric" maxLength={11} placeholder="请输入手机号" />
+              </Form.Item>
 
-          <Form.Item label="生日" name="birthday">
-            <Input placeholder="例如：1990-01-01" />
-          </Form.Item>
+              <Form.Item label="证件类型" name="idType">
+                <Select placeholder="请选择证件类型" allowClear>
+                  <Option value="身份证">身份证</Option>
+                  <Option value="护照">护照</Option>
+                  <Option value="港澳通行证">港澳通行证</Option>
+                  <Option value="台湾通行证">台湾通行证</Option>
+                </Select>
+              </Form.Item>
 
-          <Form.Item label="客户来源" name="source">
-            <Select placeholder="请选择客户来源" allowClear>
-              <Option value="h5">H5</Option>
-              <Option value="wechat">微信</Option>
-              <Option value="phone">电话</Option>
-              <Option value="front_desk">前台</Option>
-              <Option value="other">其他</Option>
-            </Select>
-          </Form.Item>
+              <Form.Item label="证件号码" name="idNumber" normalize={normalizeIdNumber}>
+                <Input
+                  maxLength={18}
+                  placeholder="请输入证件号码"
+                />
+              </Form.Item>
+            </div>
 
-          <Form.Item label="会员等级" name="level">
-            <Select placeholder="请选择会员等级" allowClear>
-              <Option value="normal">普通</Option>
-              <Option value="silver">银卡</Option>
-              <Option value="gold">金卡</Option>
-              <Option value="platinum">白金</Option>
-            </Select>
-          </Form.Item>
+            <div>
+              <Form.Item label="生日" name="birthday">
+                <DatePicker
+                  style={{ width: '100%' }}
+                  placeholder="请选择生日"
+                  format="YYYY-MM-DD"
+                  allowClear
+                />
+              </Form.Item>
 
-          <Form.Item label="备注" name="remark">
-            <TextArea rows={3} placeholder="请输入备注" />
-          </Form.Item>
+              <Form.Item label="客户来源" name="source">
+                <Select placeholder="请选择客户来源" allowClear>
+                  <Option value="h5">H5</Option>
+                  <Option value="wechat">微信</Option>
+                  <Option value="phone">电话</Option>
+                  <Option value="front_desk">前台</Option>
+                  <Option value="other">其他</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item label="会员等级" name="level">
+                <Select placeholder="请选择会员等级" allowClear>
+                  <Option value="normal">普通</Option>
+                  <Option value="silver">银卡</Option>
+                  <Option value="gold">金卡</Option>
+                  <Option value="platinum">白金</Option>
+                </Select>
+              </Form.Item>
+
+              <Form.Item label="备注" name="remark">
+                <TextArea rows={5} placeholder="请输入备注" />
+              </Form.Item>
+            </div>
+          </div>
         </Form>
       </Modal>
 
@@ -360,7 +422,7 @@ const Customers = () => {
       <Drawer
         title={`${currentCustomer?.name} 的历史订单`}
         placement="right"
-        width={800}
+        size="large"
         open={drawerVisible}
         onClose={() => setDrawerVisible(false)}
       >

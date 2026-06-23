@@ -6,12 +6,14 @@ spring:
     name: xingqi-backend
 
   datasource:
-    driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:${xingqi.data-dir:data}/xingqi.db
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/xingqi?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: pxczxn
 
   sql:
     init:
-      mode: always
+      mode: never
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
       continue-on-error: false

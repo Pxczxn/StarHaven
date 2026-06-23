@@ -223,7 +223,7 @@ const RoomTypes = () => {
         width={860}
         centered
         className="room-type-modal"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}

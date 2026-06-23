@@ -309,7 +309,7 @@ const Rooms = () => {
         width={900}
         centered
         className="room-modal"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={form}
@@ -412,7 +412,7 @@ const Rooms = () => {
         onOk={handleUpdateStatus}
         onCancel={() => setStatusModalVisible(false)}
         width={400}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={statusForm} layout="vertical">
           <Form.Item

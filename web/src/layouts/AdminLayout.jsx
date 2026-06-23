@@ -73,7 +73,9 @@ const AdminLayout = () => {
       label: '系统设置',
       visible: user?.role === 'admin', // 只有管理员可见
     },
-  ].filter(item => item.visible !== false);
+  ]
+    .filter(item => item.visible !== false)
+    .map(({ visible, ...item }) => item);
 
   // 处理菜单点击
   const handleMenuClick = ({ key }) => {

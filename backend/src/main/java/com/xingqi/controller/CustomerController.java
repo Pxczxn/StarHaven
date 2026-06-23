@@ -1,13 +1,13 @@
 package com.xingqi.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xingqi.common.ApiResponse;
 import com.xingqi.common.PageResponse;
-import com.xingqi.dto.request.CustomerRequest;
 import com.xingqi.entity.BookingOrder;
 import com.xingqi.entity.Customer;
 import com.xingqi.service.CustomerService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,52 +17,46 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/customers")
+@RequiredArgsConstructor
 public class CustomerController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
     /**
      * 分页查询客户
      */
     @GetMapping
-    public ApiResponse<PageResponse<Customer>> list(
-            @RequestParam(defaultValue = "1") long page,
-            @RequestParam(defaultValue = "10") long pageSize,
+    public ApiResponse<PageResponse<Customer>> page(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) String keyword
     ) {
-        PageResponse<Customer> result = customerService.list(page, pageSize, keyword);
-        return ApiResponse.success(result);
+        Page<Customer> result = customerService.page(page, pageSize, keyword);
+        return ApiResponse.success(PageResponse.of(result));
     }
 
     /**
-     * 获取客户详情
+     * 根据 ID 查询客户
      */
     @GetMapping("/{id}")
     public ApiResponse<Customer> getById(@PathVariable Long id) {
-        Customer customer = customerService.getById(id);
-        return ApiResponse.success(customer);
+        return ApiResponse.success(customerService.getById(id));
     }
 
     /**
-     * 创建客户
+     * 新增客户
      */
     @PostMapping
-    public ApiResponse<Customer> create(@Valid @RequestBody CustomerRequest request) {
-        Customer customer = customerService.create(request);
-        return ApiResponse.success("创建成功", customer);
+    public ApiResponse<Customer> create(@Valid @RequestBody Customer customer) {
+        return ApiResponse.success(customerService.create(customer));
     }
 
     /**
      * 更新客户
      */
     @PutMapping("/{id}")
-    public ApiResponse<Customer> update(
-            @PathVariable Long id,
-            @Valid @RequestBody CustomerRequest request
-    ) {
-        Customer customer = customerService.update(id, request);
-        return ApiResponse.success("更新成功", customer);
+    public ApiResponse<Customer> update(@PathVariable Long id, @Valid @RequestBody Customer customer) {
+        return ApiResponse.success(customerService.update(id, customer));
     }
 
     /**
@@ -75,11 +69,10 @@ public class CustomerController {
     }
 
     /**
-     * 获取客户的历史订单
+     * 查询客户的历史订单
      */
     @GetMapping("/{id}/orders")
     public ApiResponse<List<BookingOrder>> getOrders(@PathVariable Long id) {
-        List<BookingOrder> orders = customerService.getOrders(id);
-        return ApiResponse.success(orders);
+        return ApiResponse.success(customerService.getOrdersByCustomerId(id));
     }
 }

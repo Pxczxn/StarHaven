@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -16,18 +17,18 @@ import java.time.LocalDateTime;
 public class BookingOrder {
 
     /**
-     * 订单ID
+     * 主键 ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 订单编号
+     * 订单号
      */
     private String orderNo;
 
     /**
-     * 客户ID
+     * 客户 ID
      */
     private Long customerId;
 
@@ -42,7 +43,12 @@ public class BookingOrder {
     private String customerPhone;
 
     /**
-     * 房间ID
+     * 客户身份证号
+     */
+    private String customerIdNumber;
+
+    /**
+     * 房间 ID
      */
     private Long roomId;
 
@@ -54,47 +60,58 @@ public class BookingOrder {
     /**
      * 入住日期
      */
-    private String checkInDate;
+    private LocalDate checkInDate;
 
     /**
-     * 离店日期
+     * 退房日期
      */
-    private String checkOutDate;
+    private LocalDate checkOutDate;
 
     /**
-     * 入住晚数
+     * 入住天数
      */
     private Integer nights;
 
     /**
-     * 订单总额
+     * 订单总金额
      */
     private BigDecimal totalAmount;
 
     /**
-     * 已付金额
+     * 已支付金额
      */
     private BigDecimal paidAmount;
 
     /**
-     * 支付方式：cash-现金, wechat-微信, alipay-支付宝, bank_card-银行卡, other-其他
-     */
-    private String paymentMethod;
-
-    /**
-     * 订单来源：front_desk-前台, phone-电话, wechat-微信, ctrip-携程, meituan-美团, h5-H5, other-其他
-     */
-    private String source;
-
-    /**
-     * 订单状态：pending-待确认, reserved-已预订, occupied-已入住, completed-已完成, cancelled-已取消, refunded-已退款
+     * 订单状态
+     * pending: 待确认
+     * reserved: 已预订
+     * occupied: 已入住
+     * checked_out: 已退房
+     * cancelled: 已取消
      */
     private String status;
 
     /**
-     * 取消原因
+     * 支付状态
+     * unpaid: 未支付
+     * partial: 部分支付
+     * paid: 已支付
+     * refunded: 已退款
      */
-    private String cancelReason;
+    private String paymentStatus;
+
+    /**
+     * 订单来源
+     * front_desk: 前台
+     * phone: 电话
+     * wechat: 微信
+     * h5: H5
+     * ctrip: 携程
+     * meituan: 美团
+     * other: 其他
+     */
+    private String source;
 
     /**
      * 备注

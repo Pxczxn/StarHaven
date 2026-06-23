@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class Customer {
 
     /**
-     * 客户ID
+     * 主键 ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -26,17 +26,12 @@ public class Customer {
     private String name;
 
     /**
-     * 性别
-     */
-    private String gender;
-
-    /**
      * 手机号
      */
     private String phone;
 
     /**
-     * 证件类型
+     * 证件类型（如：身份证、护照）
      */
     private String idType;
 
@@ -44,6 +39,11 @@ public class Customer {
      * 证件号码
      */
     private String idNumber;
+
+    /**
+     * 性别（male: 男, female: 女）
+     */
+    private String gender;
 
     /**
      * 生日
@@ -56,7 +56,7 @@ public class Customer {
     private String source;
 
     /**
-     * 会员等级
+     * 客户等级
      */
     private String level;
 
