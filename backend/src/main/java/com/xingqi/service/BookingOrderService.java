@@ -214,7 +214,7 @@ public class BookingOrderService {
                 order.getOrderNo(), amount, paymentMethod, newPaidAmount);
     }
 
-    private boolean isRoomAvailable(Long roomId, LocalDate checkIn, LocalDate checkOut, Long excludeOrderId) {
+    public boolean isRoomAvailable(Long roomId, LocalDate checkIn, LocalDate checkOut, Long excludeOrderId) {
         LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BookingOrder::getRoomId, roomId);
         wrapper.in(BookingOrder::getStatus, "pending", "reserved", "occupied");

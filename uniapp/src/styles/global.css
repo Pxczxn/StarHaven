@@ -1,0 +1,208 @@
+:root {
+  /* --- 基础底衬与碎星晶体容器 --- */
+  --cosmic-bg: #030207;                 /* 纯粹深邃的深空主背景色 */
+  --cosmic-card: rgba(15, 11, 32, 0.45); /* 碎星晶体高透卡片底色（高透光，透出底层背景） */
+  --cosmic-popover: #0c0919;            /* 实体化核心底色（用于悬浮菜单、检索弹窗等遮罩，防透字） */
+
+  /* --- 系统核心文本 --- */
+  --text-primary: #ffffff;            /* 强对比高亮白（用于标题、正文核心文字） */
+  --text-secondary: #cbd5e1;          /* 柔和雾白（用于长文本正文、高可读性叙述） */
+  --text-muted: #64748b;              /* 黯淡星尘灰（用于时间、辅助说明、二级副标题） */
+
+  /* --- 核心行动点发光双色 --- */
+  --action-pink: #f43f5e;             /* 核心强调色/超新星粉（主行动点、高亮警示、焦点动作） */
+  --action-cyan: #06b6d4;             /* 指引功能色/极光青（次要行动点、超链接、聚焦态、成功提示） */
+  --action-glow: #a78bfa;             /* 氛围过渡色/织女星紫（微光边界、流光动效过渡） */
+
+  /* --- 粒子发光特效与滤镜 --- */
+  --glow-pink: rgba(244, 63, 94, 0.3);
+  --glow-cyan: rgba(6, 182, 212, 0.3);
+  --crystal-border: rgba(255, 255, 255, 0.08); /* 晶体折射微光边缘线 */
+
+  /* 兼容旧变量 */
+  --primary: var(--action-pink);
+  --bg-dark: var(--cosmic-bg);
+  --bg-card: var(--cosmic-card);
+  --border: var(--crystal-border);
+  --text-tertiary: var(--text-muted);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 全局基础环境 */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: transparent; /* 让星空透出 */
+  color: var(--text-secondary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* 全局统一定制滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.3), rgba(244, 63, 94, 0.3));
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--action-cyan), var(--action-pink));
+}
+
+/* 通用全息碎星卡片 */
+.cosmic-ui-card {
+  background: var(--cosmic-card);
+  border: 1px solid var(--crystal-border);
+  border-radius: 20px;
+  padding: 28px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.cosmic-ui-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 30px var(--glow-cyan);
+}
+
+/* 主入口按钮 */
+.cosmic-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  padding: 0 32px;
+  border-radius: 999px;
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: 1px solid rgba(244, 63, 94, 0.5) !important;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(139, 92, 246, 0.15)) !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 15px var(--glow-pink);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cosmic-btn-primary:hover {
+  border-color: #ffffff !important;
+  background: linear-gradient(135deg, var(--action-pink), #8b5cf6) !important;
+  box-shadow: 0 0 35px rgba(244, 63, 94, 0.5), 0 10px 20px rgba(0, 0, 0, 0.4);
+  transform: scale(1.03);
+}
+
+/* 次要行动按钮 */
+.cosmic-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 26px;
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--crystal-border);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cosmic-btn-secondary:hover {
+  color: var(--action-cyan);
+  border-color: var(--action-cyan);
+  background: rgba(6, 182, 212, 0.08);
+  box-shadow: 0 0 20px var(--glow-cyan);
+}
+
+/* 表单输入框 */
+.cosmic-input-field,
+.cosmic-textarea-field,
+input,
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--crystal-border);
+  border-radius: 14px;
+  padding: 14px 20px;
+  color: var(--text-primary);
+  font-size: 15px;
+  outline: none;
+  backdrop-filter: blur(4px);
+  transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+}
+
+.cosmic-input-field::placeholder,
+.cosmic-textarea-field::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.cosmic-input-field:focus,
+.cosmic-textarea-field:focus,
+input:focus,
+textarea:focus {
+  background: rgba(6, 182, 212, 0.02);
+  border-color: var(--action-cyan);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* 按钮通用样式 */
+button {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* 链接通用样式 */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .cosmic-ui-card {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .cosmic-btn-primary {
+    height: 46px;
+    padding: 0 24px;
+    font-size: 14px;
+  }
+
+  .cosmic-btn-secondary {
+    height: 44px;
+    padding: 0 20px;
+  }
+}
