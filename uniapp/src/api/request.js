@@ -9,6 +9,10 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem('tenantToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -31,6 +35,11 @@ request.interceptors.response.use(
   },
   (error) => {
     console.error('请求错误:', error);
+    if (error.response?.status === 401 || error.response?.data?.code === 401) {
+      localStorage.removeItem('tenantToken');
+      localStorage.removeItem('tenantUser');
+      window.dispatchEvent(new Event('tenant-auth-change'));
+    }
     return Promise.reject(error);
   }
 );

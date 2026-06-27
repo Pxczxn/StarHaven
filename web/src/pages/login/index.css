@@ -126,6 +126,18 @@
   box-shadow: none !important;
 }
 
+.login-card .ant-input-affix-wrapper .ant-input:-webkit-autofill,
+.login-card .ant-input-affix-wrapper .ant-input:-webkit-autofill:hover,
+.login-card .ant-input-affix-wrapper .ant-input:-webkit-autofill:focus,
+.login-card .ant-input-affix-wrapper .ant-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  box-shadow: 0 0 0 1000px rgba(12, 9, 25, 0.96) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(12, 9, 25, 0.96) inset !important;
+  border-radius: 0 !important;
+  transition: background-color 9999s ease-out 0s !important;
+}
+
 .login-card .ant-input-prefix,
 .login-card .ant-input-suffix {
   display: inline-flex;

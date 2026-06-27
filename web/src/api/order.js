@@ -32,8 +32,8 @@ export const checkOutOrder = (id) => {
   return request.put(`/orders/${id}/check-out`);
 };
 
-export const cancelOrder = (id) => {
-  return request.put(`/orders/${id}/cancel`);
+export const cancelOrder = (id, data) => {
+  return request.put(`/orders/${id}/cancel`, data);
 };
 
 export const paymentOrder = (id, data) => {

@@ -677,6 +677,22 @@ code {
   color: var(--text-muted);
 }
 
+.ant-input:-webkit-autofill,
+.ant-input:-webkit-autofill:hover,
+.ant-input:-webkit-autofill:focus,
+.ant-input:-webkit-autofill:active,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  box-shadow: 0 0 0 1000px rgba(12, 9, 25, 0.96) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(12, 9, 25, 0.96) inset !important;
+  border-color: var(--cosmic-border) !important;
+  transition: background-color 9999s ease-out 0s !important;
+}
+
 .ant-input-search {
   --search-height: 44px;
   --search-button-width: 52px;

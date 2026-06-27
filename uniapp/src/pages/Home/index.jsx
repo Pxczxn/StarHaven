@@ -20,7 +20,6 @@ function Home() {
         getSiteInfo(),
         getRoomTypes(),
       ]);
-      console.log('获取到的房型数据:', types);
       setSiteInfo(site);
       setRoomTypes(types.slice(0, 3));
     } catch (error) {
@@ -78,9 +77,7 @@ function Home() {
       <section className="rooms-section">
         <h2 className="section-title">推荐房型</h2>
         <div className="rooms-grid">
-          {roomTypes.map((room) => {
-            console.log('渲染房间:', room.name, '价格:', room.defaultPrice);
-            return (
+          {roomTypes.map((room) => (
             <div key={room.id} className="room-card cosmic-ui-card">
               <div className="room-image">
                 {room.imageUrl ? (
@@ -100,7 +97,7 @@ function Home() {
                 <div className="room-footer">
                   <div className="room-price">
                     <span className="price-label">起</span>
-                    <span className="price-value">¥{room.defaultPrice || '---'}</span>
+                    <span className="price-value">¥{room.defaultPrice}</span>
                     <span className="price-unit">/晚</span>
                   </div>
                   <Link to="/rooms" className="cosmic-btn-secondary">
@@ -109,7 +106,7 @@ function Home() {
                 </div>
               </div>
             </div>
-          )})}
+          ))}
         </div>
       </section>
 

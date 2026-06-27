@@ -39,6 +39,10 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        if (uri.equals("/api/tenant/auth/login") || uri.equals("/api/tenant/auth/register")) {
+            return true;
+        }
+
         // 健康检查接口放行
         if (uri.equals("/api/health")) {
             return true;

@@ -41,6 +41,11 @@ public class User {
     private String phone;
 
     /**
+     * 身份证号
+     */
+    private String idNumber;
+
+    /**
      * 角色：admin-管理员, landlord-房东, tenant-租客
      */
     private String role;

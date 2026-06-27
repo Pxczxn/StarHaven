@@ -10,6 +10,7 @@ import com.xingqi.mapper.BookingOrderMapper;
 import com.xingqi.mapper.RoomMapper;
 import com.xingqi.service.BookingOrderService;
 import com.xingqi.service.RoomTypeService;
+import com.xingqi.service.SiteSettingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class PublicController {
     private final RoomMapper roomMapper;
     private final BookingOrderMapper bookingOrderMapper;
     private final BookingOrderService bookingOrderService;
+    private final SiteSettingService siteSettingService;
 
     /**
      * 获取站点信息
@@ -39,11 +41,13 @@ public class PublicController {
     @GetMapping("/site-info")
     public ApiResponse<Map<String, String>> getSiteInfo() {
         Map<String, String> info = new HashMap<>();
-        info.put("brandName", "星栖民宿");
-        info.put("slogan", "星辰为引，栖心而居");
-        info.put("phone", "400-888-8888");
-        info.put("address", "某市某区某街道123号");
-        info.put("description", "在星空下，找到心灵的栖息地");
+        var setting = siteSettingService.getSiteSetting();
+        info.put("brandName", setting.getBrandName());
+        info.put("slogan", setting.getSlogan());
+        info.put("phone", setting.getPhone());
+        info.put("address", setting.getAddress());
+        info.put("description", setting.getDescription());
+        info.put("heroImageUrl", setting.getHeroImageUrl());
         return ApiResponse.success(info);
     }
 
@@ -113,23 +117,19 @@ public class PublicController {
     }
 
     /**
-     * 订单查询（订单号 + 手机号验证）
+     * 订单查询（订单尾号/完整订单号/手机号，至少提供一个）
      */
     @GetMapping("/orders/query")
-    public ApiResponse<BookingOrder> queryOrder(
-            @RequestParam String orderNo,
-            @RequestParam String phone) {
+    public ApiResponse<List<BookingOrder>> queryOrder(
+            @RequestParam(required = false) String orderNo,
+            @RequestParam(required = false) String phone) {
 
-        LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BookingOrder::getOrderNo, orderNo);
-        wrapper.eq(BookingOrder::getCustomerPhone, phone);
-        BookingOrder order = bookingOrderMapper.selectOne(wrapper);
-
-        if (order == null) {
-            throw BusinessException.notFound("订单不存在或手机号不匹配");
+        List<BookingOrder> orders = findOrdersByNoOrTail(orderNo, phone);
+        if (orders.isEmpty()) {
+            throw BusinessException.notFound("订单不存在");
         }
 
-        return ApiResponse.success(order);
+        return ApiResponse.success(orders);
     }
 
     /**
@@ -140,18 +140,46 @@ public class PublicController {
             @PathVariable String orderNo,
             @RequestParam String phone) {
 
-        LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BookingOrder::getOrderNo, orderNo);
-        BookingOrder order = bookingOrderMapper.selectOne(wrapper);
-
+        BookingOrder order = findOrderByNoOrTail(orderNo, phone);
         if (order == null) {
             throw BusinessException.notFound("订单不存在");
         }
 
-        if (!order.getCustomerPhone().equals(phone)) {
-            throw BusinessException.forbidden("无权查看该订单");
+        return ApiResponse.success(order);
+    }
+
+    private BookingOrder findOrderByNoOrTail(String orderNo, String phone) {
+        List<BookingOrder> orders = findOrdersByNoOrTail(orderNo, phone);
+        return orders.isEmpty() ? null : orders.get(0);
+    }
+
+    private List<BookingOrder> findOrdersByNoOrTail(String orderNo, String phone) {
+        String trimmedOrderNo = orderNo == null ? "" : orderNo.trim();
+        String trimmedPhone = phone == null ? "" : phone.trim();
+
+        if (trimmedOrderNo.isEmpty() && trimmedPhone.isEmpty()) {
+            return List.of();
         }
 
-        return ApiResponse.success(order);
+        LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
+        if (!trimmedPhone.isEmpty()) {
+            wrapper.eq(BookingOrder::getCustomerPhone, trimmedPhone);
+        }
+
+        if (trimmedOrderNo.length() == 6 && trimmedOrderNo.chars().allMatch(Character::isDigit)) {
+            wrapper.likeRight(BookingOrder::getOrderNo, "ORD");
+            wrapper.like(BookingOrder::getOrderNo, trimmedOrderNo);
+            wrapper.orderByDesc(BookingOrder::getCreatedAt);
+            List<BookingOrder> orders = bookingOrderMapper.selectList(wrapper);
+            return orders.stream()
+                    .filter(order -> order.getOrderNo() != null && order.getOrderNo().endsWith(trimmedOrderNo))
+                    .toList();
+        }
+
+        if (!trimmedOrderNo.isEmpty()) {
+            wrapper.eq(BookingOrder::getOrderNo, trimmedOrderNo);
+        }
+        wrapper.orderByDesc(BookingOrder::getCreatedAt);
+        return bookingOrderMapper.selectList(wrapper);
     }
 }

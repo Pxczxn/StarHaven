@@ -1,0 +1,70 @@
+.finance-page .finance-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.finance-page .metric-card {
+  min-height: 116px;
+}
+
+.finance-page .metric-label {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.finance-page .metric-value {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.finance-page .metric-value.accent {
+  color: #f43f5e;
+}
+
+.finance-page .metric-value.cyan {
+  color: #06b6d4;
+}
+
+.finance-page .finance-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.finance-page .trend-list {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-page .trend-item,
+.finance-page .method-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 110px;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.finance-page .trend-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #06b6d4, #f43f5e);
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.24);
+}
+
+.finance-page .method-list {
+  display: grid;
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .finance-page .finance-grid {
+    grid-template-columns: 1fr;
+  }
+}

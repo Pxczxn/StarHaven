@@ -133,10 +133,10 @@ const OrderList = () => {
     setPaymentModalVisible(true);
   };
 
-  const handleCancelSuccess = async () => {
+  const handleCancelSuccess = async (values) => {
     if (!currentOrder) return;
     try {
-      await cancelOrder(currentOrder.id);
+      await cancelOrder(currentOrder.id, { cancelReason: values?.reason });
       message.success('订单已取消');
       setCancelModalVisible(false);
       setCurrentOrder(null);
@@ -158,6 +158,7 @@ const OrderList = () => {
       pending: 'orange',
       reserved: 'blue',
       occupied: 'green',
+      checked_out: 'default',
       completed: 'default',
       cancelled: 'red',
       refunded: 'purple',
@@ -313,7 +314,7 @@ const OrderList = () => {
             </Button>
           )}
 
-          {record.status !== 'cancelled' && record.status !== 'completed' && record.paymentStatus !== 'paid' && (
+          {record.status !== 'cancelled' && record.status !== 'checked_out' && record.status !== 'completed' && record.paymentStatus !== 'paid' && (
             <Button
               type="link"
               size="small"
@@ -323,7 +324,7 @@ const OrderList = () => {
             </Button>
           )}
 
-          {record.status !== 'occupied' && (
+          {record.status !== 'occupied' && record.status !== 'checked_out' && (
             <Popconfirm
               title="确定删除该订单吗？"
               onConfirm={() => handleDelete(record.id)}

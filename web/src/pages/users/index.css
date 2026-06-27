@@ -1,0 +1,6 @@
+.users-page .user-filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}

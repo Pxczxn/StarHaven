@@ -7,6 +7,10 @@ import RoomTypes from '../pages/roomTypes';
 import Rooms from '../pages/rooms';
 import Orders from '../pages/orders';
 import Customers from '../pages/customers';
+import Finance from '../pages/finance';
+import Operations from '../pages/operations';
+import Users from '../pages/users';
+import Settings from '../pages/settings';
 import useAuthStore from '../store/authStore';
 
 // 路由守卫组件
@@ -37,10 +41,10 @@ const AppRouter = () => {
           <Route path="rooms" element={<Rooms />} />
           <Route path="orders" element={<Orders />} />
           <Route path="customers" element={<Customers />} />
-          <Route path="finance" element={<div style={{color: '#fff'}}>财务统计（开发中）</div>} />
-          <Route path="operations" element={<div style={{color: '#fff'}}>运营任务（开发中）</div>} />
-          <Route path="users" element={<div style={{color: '#fff'}}>账号管理（开发中）</div>} />
-          <Route path="settings" element={<div style={{color: '#fff'}}>系统设置（开发中）</div>} />
+          <Route path="finance" element={<Finance />} />
+          <Route path="operations" element={<Operations />} />
+          <Route path="users" element={<Users />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* 404 */}

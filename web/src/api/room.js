@@ -7,6 +7,10 @@ export const getRooms = (params) => {
   return request.get('/rooms', { params });
 };
 
+export const getAllRooms = () => {
+  return request.get('/rooms/all');
+};
+
 /**
  * 获取房间详情
  */
@@ -32,7 +36,8 @@ export const updateRoom = (id, data) => {
  * 修改房间状态
  */
 export const updateRoomStatus = (id, data) => {
-  return request.put(`/rooms/${id}/status`, data);
+  const status = typeof data === 'string' ? data : data?.status;
+  return request.put(`/rooms/${id}/status`, null, { params: { status } });
 };
 
 /**

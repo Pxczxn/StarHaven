@@ -31,7 +31,8 @@ public class BookingOrderService {
     private final CustomerMapper customerMapper;
     private final CustomerService customerService;
 
-    public Page<BookingOrder> page(Integer pageNum, Integer pageSize, String keyword, String status) {
+    public Page<BookingOrder> page(Integer pageNum, Integer pageSize, String keyword, String status,
+                                   LocalDate startDate, LocalDate endDate) {
         Page<BookingOrder> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<BookingOrder> wrapper = new LambdaQueryWrapper<>();
 
@@ -44,6 +45,14 @@ public class BookingOrderService {
 
         if (status != null && !status.trim().isEmpty()) {
             wrapper.eq(BookingOrder::getStatus, status);
+        }
+
+        if (startDate != null) {
+            wrapper.ge(BookingOrder::getCheckInDate, startDate);
+        }
+
+        if (endDate != null) {
+            wrapper.le(BookingOrder::getCheckOutDate, endDate);
         }
 
         wrapper.orderByDesc(BookingOrder::getCreatedAt);
@@ -92,8 +101,8 @@ public class BookingOrderService {
         order.setRoomNo(room.getRoomNo());
 
         if (order.getStatus() == null) order.setStatus("pending");
-        if (order.getPaymentStatus() == null) order.setPaymentStatus("unpaid");
         if (order.getPaidAmount() == null) order.setPaidAmount(BigDecimal.ZERO);
+        order.setPaymentStatus(resolvePaymentStatus(order.getPaidAmount(), totalAmount));
         if (order.getSource() == null) order.setSource("front_desk");  // 默认为前台
 
         order.setCreatedAt(LocalDateTime.now());
@@ -102,6 +111,79 @@ public class BookingOrderService {
 
         log.info("创建订单: {}", order.getOrderNo());
         return order;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public BookingOrder update(Long id, BookingOrder request) {
+        BookingOrder existing = getById(id);
+        if (!"pending".equals(existing.getStatus()) && !"reserved".equals(existing.getStatus())) {
+            throw BusinessException.badRequest("只有待确认或已预订状态的订单可以编辑");
+        }
+
+        Room room = roomMapper.selectById(request.getRoomId());
+        if (room == null) {
+            throw BusinessException.badRequest("房间不存在");
+        }
+
+        if (!isRoomAvailable(request.getRoomId(), request.getCheckInDate(), request.getCheckOutDate(), id)) {
+            throw BusinessException.badRequest("该房间在选定日期已被预订");
+        }
+
+        Customer customer;
+        if (request.getCustomerId() != null) {
+            customer = customerMapper.selectById(request.getCustomerId());
+            if (customer == null) {
+                throw BusinessException.badRequest("客户不存在");
+            }
+        } else {
+            customer = customerService.getOrCreateByPhone(
+                    request.getCustomerPhone(),
+                    request.getCustomerName(),
+                    request.getCustomerIdNumber()
+            );
+        }
+
+        long nights = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
+        if (nights <= 0) {
+            throw BusinessException.badRequest("退房日期必须晚于入住日期");
+        }
+
+        BigDecimal totalAmount = room.getPrice().multiply(BigDecimal.valueOf(nights));
+        BigDecimal paidAmount = request.getPaidAmount() == null ? BigDecimal.ZERO : request.getPaidAmount();
+        if (paidAmount.compareTo(totalAmount) > 0) {
+            throw BusinessException.badRequest("已付金额不能超过订单总金额");
+        }
+
+        existing.setCustomerId(customer.getId());
+        existing.setCustomerName(request.getCustomerName());
+        existing.setCustomerPhone(request.getCustomerPhone());
+        existing.setCustomerIdNumber(request.getCustomerIdNumber());
+        existing.setRoomId(request.getRoomId());
+        existing.setRoomNo(room.getRoomNo());
+        existing.setCheckInDate(request.getCheckInDate());
+        existing.setCheckOutDate(request.getCheckOutDate());
+        existing.setNights((int) nights);
+        existing.setTotalAmount(totalAmount);
+        existing.setPaidAmount(paidAmount);
+        existing.setPaymentStatus(resolvePaymentStatus(paidAmount, totalAmount));
+        existing.setPaymentMethod(request.getPaymentMethod());
+        existing.setSource(request.getSource() == null ? existing.getSource() : request.getSource());
+        existing.setRemark(request.getRemark());
+        existing.setUpdatedAt(LocalDateTime.now());
+
+        bookingOrderMapper.updateById(existing);
+        log.info("更新订单: {}", existing.getOrderNo());
+        return existing;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long id) {
+        BookingOrder order = getById(id);
+        if ("occupied".equals(order.getStatus())) {
+            throw BusinessException.badRequest("已入住订单无法删除");
+        }
+        bookingOrderMapper.deleteById(id);
+        log.info("删除订单: {}", order.getOrderNo());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -157,7 +239,7 @@ public class BookingOrderService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void cancel(Long id) {
+    public void cancel(Long id, String cancelReason) {
         BookingOrder order = getById(id);
         if ("checked_out".equals(order.getStatus()) || "cancelled".equals(order.getStatus())) {
             throw BusinessException.badRequest("已退房或已取消的订单无法取消");
@@ -169,6 +251,7 @@ public class BookingOrderService {
             roomMapper.updateById(room);
         }
         order.setStatus("cancelled");
+        order.setCancelReason(cancelReason);
         order.setUpdatedAt(LocalDateTime.now());
         bookingOrderMapper.updateById(order);
         log.info("取消订单: {}", order.getOrderNo());
@@ -199,13 +282,10 @@ public class BookingOrderService {
 
         // 更新已付金额
         order.setPaidAmount(newPaidAmount);
+        order.setPaymentMethod(paymentMethod);
 
         // 更新支付状态
-        if (newPaidAmount.compareTo(BigDecimal.ZERO) > 0 && newPaidAmount.compareTo(order.getTotalAmount()) < 0) {
-            order.setPaymentStatus("partial");  // 部分支付
-        } else if (newPaidAmount.compareTo(order.getTotalAmount()) == 0) {
-            order.setPaymentStatus("paid");  // 已支付
-        }
+        order.setPaymentStatus(resolvePaymentStatus(newPaidAmount, order.getTotalAmount()));
 
         order.setUpdatedAt(LocalDateTime.now());
         bookingOrderMapper.updateById(order);
@@ -234,5 +314,15 @@ public class BookingOrderService {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         int random = (int) (Math.random() * 9000) + 1000;
         return "ORD" + timestamp + random;
+    }
+
+    private String resolvePaymentStatus(BigDecimal paidAmount, BigDecimal totalAmount) {
+        if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return "unpaid";
+        }
+        if (totalAmount != null && paidAmount.compareTo(totalAmount) >= 0) {
+            return "paid";
+        }
+        return "partial";
     }
 }

@@ -102,6 +102,11 @@ public class BookingOrder {
     private String paymentStatus;
 
     /**
+     * 支付方式
+     */
+    private String paymentMethod;
+
+    /**
      * 订单来源
      * front_desk: 前台
      * phone: 电话
@@ -117,6 +122,11 @@ public class BookingOrder {
      * 备注
      */
     private String remark;
+
+    /**
+     * 取消原因
+     */
+    private String cancelReason;
 
     /**
      * 创建时间
