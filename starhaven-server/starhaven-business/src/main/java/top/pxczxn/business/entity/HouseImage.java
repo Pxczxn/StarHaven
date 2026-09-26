@@ -1,0 +1,16 @@
+package top.pxczxn.business.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+@Data
+@TableName("house_image")
+public class HouseImage {
+    @TableId(type = IdType.AUTO)
+    private Long id;
+    private Long houseId;
+    private String imageUrl;
+    private Integer sort;
+}

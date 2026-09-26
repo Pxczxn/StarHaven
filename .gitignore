@@ -1,0 +1,119 @@
+# ============================================================
+# 原则：只提交项目源码 + 正式插图；其余忽略
+#
+# 插图 vs 原型图：只按路径判断
+# 插图路径（提交）：public/images/、public/brand/、src/assets/、static/
+# 原型路径（忽略）：.prototype-review/、prototype-assets/、prototype-specs/
+# ============================================================
+
+# 依赖
+node_modules/
+.mvn/
+
+# 构建产物
+target/
+dist/
+build/
+out/
+*.class
+*.war
+*.hprof
+*.jar
+*.tsbuildinfo
+
+# 缓存与测试输出
+.cache/
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+.eslintcache
+.stylelintcache
+
+# 运行时与临时文件
+.run/
+runtime/
+logs/
+uploads/
+tmp/
+temp/
+*.log
+*.pid
+*.tmp
+
+# 本地环境与密钥
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+application-secret.yml
+
+# 本地数据库文件
+*.db
+*.sqlite
+*.sqlite3
+database/data/
+database/backup/
+*.sql.gz
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+.hbuilderx/
+
+# AI / Agent 产出
+.agents/
+.agent/
+.codex/
+.claude/
+.cursor/
+.reasonix/
+.workbuddy/
+.ai/
+ai-notes/
+ai-output/
+hermes/
+rollout-*.jsonl
+.codex-*.png
+
+# 原型路径（忽略）
+.prototype-review/
+prototype/
+prototypes/
+prototype-specs/
+prototype-assets/
+mockup/
+wireframe/
+figma/
+design/
+
+# 非插图路径的截图（不覆盖 static/、src/assets/、public/images/）
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+starhaven-admin/*.png
+starhaven-admin/*.jpg
+starhaven-uniapp/img.png
+
+# 开发资料与个人工具
+docs/
+doc/
+*.md
+!/README.md
+!/starhaven-server/README.md
+!/starhaven-uniapp/README.md
+qa/
+tools/
+
+# 操作系统
+.DS_Store
+Thumbs.db
+Desktop.ini

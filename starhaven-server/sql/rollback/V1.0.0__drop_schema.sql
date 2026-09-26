@@ -1,0 +1,17 @@
+USE starhaven;
+DROP TABLE IF EXISTS `host_apply`;
+DROP TABLE IF EXISTS `browse_history`;
+DROP TABLE IF EXISTS `banner`;
+DROP TABLE IF EXISTS `coupon_user`;
+DROP TABLE IF EXISTS `coupon`;
+DROP TABLE IF EXISTS `message`;
+DROP TABLE IF EXISTS `comment_image`;
+DROP TABLE IF EXISTS `comment`;
+DROP TABLE IF EXISTS `payment`;
+DROP TABLE IF EXISTS `booking_order`;
+DROP TABLE IF EXISTS `search_history`;
+DROP TABLE IF EXISTS `favorite`;
+DROP TABLE IF EXISTS `house_facility`;
+DROP TABLE IF EXISTS `house_image`;
+DROP TABLE IF EXISTS `house`;
+DROP TABLE IF EXISTS `user`;
