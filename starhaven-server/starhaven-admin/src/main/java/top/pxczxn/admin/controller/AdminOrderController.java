@@ -1,9 +1,12 @@
 package top.pxczxn.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.annotation.SaMode;
+import top.pxczxn.business.service.HouseService;
 import top.pxczxn.business.service.HostService;
 import top.pxczxn.business.service.OrderService;
 import top.pxczxn.business.vo.OrderVO;
+import top.pxczxn.common.auth.StaffAuth;
 import top.pxczxn.common.result.PageData;
 import top.pxczxn.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,14 +19,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "后台订单与房东")
-@SaCheckRole("ADMIN")
+@Tag(name = "后台订单")
+@SaCheckRole(value = {"ADMIN", "HOST"}, mode = SaMode.OR)
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminOrderController {
 
     private final OrderService orderService;
+    private final HouseService houseService;
     private final HostService hostService;
 
     @Operation(summary = "订单分页")
@@ -33,7 +37,9 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "10") long size,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String keyword) {
-        return Result.ok(orderService.adminPage(page, size, status, keyword));
+        Long hostId = StaffAuth.merchantScopeId();
+        var houseIds = hostId == null ? null : houseService.idsOfHost(hostId);
+        return Result.ok(orderService.adminPage(page, size, status, keyword, houseIds));
     }
 
     @Operation(summary = "订单详情")
@@ -56,6 +62,7 @@ public class AdminOrderController {
         return Result.ok();
     }
 
+    @SaCheckRole("ADMIN")
     @Operation(summary = "审核房东认证")
     @PutMapping("/host/audit")
     public Result<Void> hostAudit(@RequestParam Long applyId, @RequestParam Integer status,

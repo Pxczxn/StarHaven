@@ -15,6 +15,7 @@ import top.pxczxn.common.constant.RedisKeys;
 import top.pxczxn.common.exception.BusinessException;
 import top.pxczxn.common.redis.RedisFacade;
 import top.pxczxn.common.result.PageData;
+import top.pxczxn.common.web.MediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class OrderService {
     private final HouseMapper houseMapper;
     private final MessageMapper messageMapper;
     private final RedisFacade redisFacade;
+    private final MediaUrlResolver mediaUrlResolver;
 
     @Transactional
     public OrderVO create(CreateOrderDTO dto) {
@@ -119,8 +121,12 @@ public class OrderService {
         pushMessage(order.getUserId(), "ORDER", "订单已取消", "订单号 " + order.getOrderNo());
     }
 
-    public PageData<OrderVO> adminPage(long page, long size, String status, String keyword) {
+    public PageData<OrderVO> adminPage(long page, long size, String status, String keyword, java.util.List<Long> houseIds) {
+        if (houseIds != null && houseIds.isEmpty()) {
+            return new PageData<>(0, java.util.List.of(), page, size);
+        }
         Page<BookingOrder> data = orderMapper.selectPage(Page.of(page, size), Wrappers.<BookingOrder>lambdaQuery()
+                .in(houseIds != null, BookingOrder::getHouseId, houseIds)
                 .eq(StringUtils.hasText(status), BookingOrder::getOrderStatus, status)
                 .like(StringUtils.hasText(keyword), BookingOrder::getOrderNo, keyword)
                 .orderByDesc(BookingOrder::getId));
@@ -132,23 +138,20 @@ public class OrderService {
         if (order == null) {
             throw new BusinessException("订单不存在");
         }
+        if (!StpUtil.hasRole("ADMIN") && !isMerchantOf(order)) {
+            throw new BusinessException(403, "无权查看该订单");
+        }
         return toVo(order);
     }
 
     public void updateStatus(Long id, String status) {
-        BookingOrder order = orderMapper.selectById(id);
-        if (order == null) {
-            throw new BusinessException("订单不存在");
-        }
+        BookingOrder order = requireStaffOrder(id);
         order.setOrderStatus(status);
         orderMapper.updateById(order);
     }
 
     public void refund(Long id) {
-        BookingOrder order = orderMapper.selectById(id);
-        if (order == null) {
-            throw new BusinessException("订单不存在");
-        }
+        BookingOrder order = requireStaffOrder(id);
         order.setOrderStatus("CANCEL");
         order.setPaymentStatus(0);
         orderMapper.updateById(order);
@@ -179,13 +182,24 @@ public class OrderService {
         }
     }
 
+    private BookingOrder requireStaffOrder(Long id) {
+        BookingOrder order = orderMapper.selectById(id);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        if (!StpUtil.hasRole("ADMIN") && !isMerchantOf(order)) {
+            throw new BusinessException(403, "无权操作该订单");
+        }
+        return order;
+    }
+
     public BookingOrder requireOwner(Long id) {
         BookingOrder order = orderMapper.selectById(id);
         if (order == null) {
             throw new BusinessException("订单不存在");
         }
         if (StpUtil.isLogin() && !order.getUserId().equals(StpUtil.getLoginIdAsLong())
-                && !StpUtil.hasRole("ADMIN")) {
+                && !StpUtil.hasRole("ADMIN") && !isMerchantOf(order)) {
             throw new BusinessException(403, "无权查看该订单");
         }
         return order;
@@ -211,9 +225,15 @@ public class OrderService {
         House house = houseMapper.selectById(order.getHouseId());
         if (house != null) {
             vo.setHouseTitle(house.getTitle());
-            vo.setHouseCover(house.getCoverImage());
+            vo.setHouseCover(mediaUrlResolver.resolve(house.getCoverImage()));
         }
         return vo;
+    }
+
+    private boolean isMerchantOf(BookingOrder order) {
+        House house = houseMapper.selectById(order.getHouseId());
+        return house != null && house.getHostId() != null
+                && house.getHostId().equals(StpUtil.getLoginIdAsLong());
     }
 
     private void pushMessage(Long userId, String type, String title, String content) {

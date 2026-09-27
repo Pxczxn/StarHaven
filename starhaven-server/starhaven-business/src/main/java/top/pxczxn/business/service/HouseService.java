@@ -21,6 +21,7 @@ import top.pxczxn.common.constant.RedisKeys;
 import top.pxczxn.common.exception.BusinessException;
 import top.pxczxn.common.redis.RedisFacade;
 import top.pxczxn.common.result.PageData;
+import top.pxczxn.common.web.MediaUrlResolver;
 import top.pxczxn.system.entity.User;
 import top.pxczxn.system.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ public class HouseService {
     private final UserMapper userMapper;
     private final RedisFacade redisFacade;
     private final ObjectMapper objectMapper;
+    private final MediaUrlResolver mediaUrlResolver;
 
     public PageData<HouseCardVO> page(HouseQueryDTO query) {
         LambdaQueryWrapper<House> wrapper = Wrappers.<House>lambdaQuery()
@@ -116,7 +118,7 @@ public class HouseService {
         vo.setId(house.getId());
         vo.setHostId(house.getHostId());
         vo.setTitle(house.getTitle());
-        vo.setCoverImage(house.getCoverImage());
+        vo.setCoverImage(mediaUrlResolver.resolve(house.getCoverImage()));
         vo.setDescription(house.getDescription());
         vo.setAddress(house.getAddress());
         vo.setCity(house.getCity());
@@ -134,13 +136,13 @@ public class HouseService {
                         .eq(HouseImage::getHouseId, id)
                         .orderByAsc(HouseImage::getSort))
                 .stream()
-                .map(HouseImage::getImageUrl)
+                .map(image -> mediaUrlResolver.resolve(image.getImageUrl()))
                 .toList());
         vo.setFacilities(facilities(id));
         User host = userMapper.selectById(house.getHostId());
         if (host != null) {
             vo.setHostNickname(host.getNickname());
-            vo.setHostAvatar(host.getAvatar());
+            vo.setHostAvatar(mediaUrlResolver.resolve(host.getAvatar()));
             vo.setHostCertified("HOST".equals(host.getRole()) || "ADMIN".equals(host.getRole()));
         }
         try {
@@ -152,8 +154,16 @@ public class HouseService {
         return vo;
     }
 
-    public PageData<HouseCardVO> adminPage(long page, long size, String keyword, Integer auditStatus) {
+    public java.util.List<Long> idsOfHost(Long hostId) {
+        return houseMapper.selectList(Wrappers.<House>lambdaQuery().eq(House::getHostId, hostId))
+                .stream()
+                .map(House::getId)
+                .toList();
+    }
+
+    public PageData<HouseCardVO> adminPage(long page, long size, String keyword, Integer auditStatus, Long hostId) {
         Page<House> data = houseMapper.selectPage(Page.of(page, size), Wrappers.<House>lambdaQuery()
+                .eq(hostId != null, House::getHostId, hostId)
                 .like(StringUtils.hasText(keyword), House::getTitle, keyword)
                 .eq(auditStatus != null, House::getAuditStatus, auditStatus)
                 .orderByDesc(House::getId));
@@ -161,7 +171,7 @@ public class HouseService {
     }
 
     public void audit(Long id, Integer auditStatus) {
-        House house = requireHouse(id);
+        House house = requireManageable(id);
         house.setAuditStatus(auditStatus);
         if (auditStatus != null && auditStatus == 1) {
             house.setStatus(1);
@@ -171,13 +181,14 @@ public class HouseService {
     }
 
     public void updateStatus(Long id, Integer status) {
-        House house = requireHouse(id);
+        House house = requireManageable(id);
         house.setStatus(status);
         houseMapper.updateById(house);
         redisFacade.delete(RedisKeys.HOUSE_DETAIL + id);
     }
 
     public void delete(Long id) {
+        requireManageable(id);
         houseMapper.deleteById(id);
         redisFacade.delete(RedisKeys.HOUSE_DETAIL + id);
     }
@@ -197,14 +208,17 @@ public class HouseService {
         HouseCardVO vo = new HouseCardVO();
         vo.setId(house.getId());
         vo.setTitle(house.getTitle());
-        vo.setCoverImage(house.getCoverImage());
+        vo.setCoverImage(mediaUrlResolver.resolve(house.getCoverImage()));
         vo.setCity(house.getCity());
         vo.setAddress(house.getAddress());
         vo.setPrice(house.getPrice());
+        vo.setHouseType(house.getHouseType());
         vo.setAvgScore(house.getAvgScore());
         vo.setCommentCount(house.getCommentCount());
         vo.setFacilities(facilities(house.getId()));
         vo.setFavorited(isFavorited(house.getId()));
+        vo.setStatus(house.getStatus());
+        vo.setAuditStatus(house.getAuditStatus());
         return vo;
     }
 
@@ -236,6 +250,14 @@ public class HouseService {
         return favoriteMapper.selectCount(Wrappers.<Favorite>lambdaQuery()
                 .eq(Favorite::getUserId, StpUtil.getLoginIdAsLong())
                 .eq(Favorite::getHouseId, houseId)) > 0;
+    }
+
+    private House requireManageable(Long id) {
+        House house = requireHouse(id);
+        if (!StpUtil.hasRole("ADMIN") && !house.getHostId().equals(StpUtil.getLoginIdAsLong())) {
+            throw new BusinessException(403, "无权操作该房源");
+        }
+        return house;
     }
 
     private House requireHouse(Long id) {

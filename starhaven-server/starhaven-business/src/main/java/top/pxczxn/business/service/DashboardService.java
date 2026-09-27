@@ -22,22 +22,53 @@ public class DashboardService {
     private final BookingOrderMapper orderMapper;
     private final HouseService houseService;
 
-    public DashboardVO overview() {
+    public DashboardVO overview(Long hostId) {
         DashboardVO vo = new DashboardVO();
-        vo.setUserCount(userMapper.selectCount(null));
-        vo.setHouseCount(houseMapper.selectCount(null));
-        vo.setOrderCount(orderMapper.selectCount(null));
-        vo.setTradeAmount(orderMapper.selectList(Wrappers.<BookingOrder>lambdaQuery()
-                        .in(BookingOrder::getOrderStatus, java.util.List.of("PAID", "CHECK_IN", "FINISHED")))
+        java.util.List<Long> houseIds = hostId == null ? null : houseMapper.selectList(Wrappers.<House>lambdaQuery()
+                        .eq(House::getHostId, hostId))
+                .stream()
+                .map(House::getId)
+                .toList();
+        if (hostId != null) {
+            vo.setUserCount(0);
+            vo.setHouseCount(houseIds.size());
+            if (houseIds.isEmpty()) {
+                vo.setOrderCount(0);
+                vo.setTradeAmount(BigDecimal.ZERO);
+                vo.setTodayOrderCount(0);
+                vo.setHotHouses(java.util.List.of());
+                return vo;
+            }
+        } else {
+            vo.setUserCount(userMapper.selectCount(null));
+            vo.setHouseCount(houseMapper.selectCount(null));
+        }
+        var orderQuery = Wrappers.<BookingOrder>lambdaQuery();
+        if (houseIds != null) {
+            orderQuery.in(BookingOrder::getHouseId, houseIds);
+        }
+        vo.setOrderCount(orderMapper.selectCount(orderQuery));
+        var paidQuery = Wrappers.<BookingOrder>lambdaQuery()
+                .in(BookingOrder::getOrderStatus, java.util.List.of("PAID", "CHECK_IN", "FINISHED"));
+        if (houseIds != null) {
+            paidQuery.in(BookingOrder::getHouseId, houseIds);
+        }
+        vo.setTradeAmount(orderMapper.selectList(paidQuery)
                 .stream()
                 .map(BookingOrder::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
-        vo.setTodayOrderCount(orderMapper.selectCount(Wrappers.<BookingOrder>lambdaQuery()
-                .ge(BookingOrder::getCreateTime, LocalDate.now().atStartOfDay())));
-        vo.setHotHouses(houseMapper.selectList(Wrappers.<House>lambdaQuery()
-                        .eq(House::getStatus, 1)
-                        .orderByDesc(House::getHeat)
-                        .last("LIMIT 5"))
+        var todayQuery = Wrappers.<BookingOrder>lambdaQuery()
+                .ge(BookingOrder::getCreateTime, LocalDate.now().atStartOfDay());
+        if (houseIds != null) {
+            todayQuery.in(BookingOrder::getHouseId, houseIds);
+        }
+        vo.setTodayOrderCount(orderMapper.selectCount(todayQuery));
+        var hotQuery = Wrappers.<House>lambdaQuery()
+                .eq(House::getStatus, 1)
+                .eq(hostId != null, House::getHostId, hostId)
+                .orderByDesc(House::getHeat)
+                .last("LIMIT 5");
+        vo.setHotHouses(houseMapper.selectList(hotQuery)
                 .stream()
                 .map(houseService::toCard)
                 .toList());

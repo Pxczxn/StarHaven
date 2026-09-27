@@ -16,7 +16,10 @@ public class HouseCardVO {
     private BigDecimal price;
     private BigDecimal avgScore;
     private Integer commentCount;
+    private String houseType;
     private List<String> facilities;
     @Schema(description = "当前用户是否已收藏")
     private Boolean favorited;
+    private Integer status;
+    private Integer auditStatus;
 }
