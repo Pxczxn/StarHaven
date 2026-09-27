@@ -110,6 +110,7 @@ doc/
 !/README.md
 !/starhaven-server/README.md
 !/starhaven-uniapp/README.md
+!/starhaven-admin/README.md
 qa/
 tools/
 
