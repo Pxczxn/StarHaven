@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { fetchMyCoupons, fetchMyOrders } from '@/api/stay'
+import { fetchBrowseCount, fetchMyCoupons, fetchMyOrders } from '@/api/stay'
 import { useTokenStore } from '@/store/token'
 import { useUserStore } from '@/store/user'
 
@@ -11,11 +11,13 @@ const userStore = useUserStore()
 const tokenStore = useTokenStore()
 const orderCount = ref(0)
 const couponCount = ref(0)
+const browseCount = ref(0)
 
 onShow(async () => {
   if (!tokenStore.updateNowTime().hasLogin) {
     orderCount.value = 0
     couponCount.value = 0
+    browseCount.value = 0
     return
   }
   try {
@@ -24,6 +26,7 @@ onShow(async () => {
     orderCount.value = orders.total
     const coupons = await fetchMyCoupons()
     couponCount.value = coupons.filter(item => !item.used).length
+    browseCount.value = await fetchBrowseCount()
   }
   catch {
     // 未登录时拦截器会处理
@@ -56,13 +59,14 @@ async function logout() {
   await tokenStore.logout()
   orderCount.value = 0
   couponCount.value = 0
+  browseCount.value = 0
   uni.showToast({ title: '已退出', icon: 'none' })
 }
 </script>
 
 <template>
   <view class="min-h-screen bg-page pb-24">
-    <view class="bg-gradient-to-br from-#EAF3FF to-page px-4 pb-8 pt-8">
+    <view class="from-#EAF3FF to-page bg-gradient-to-br px-4 pb-8 pt-8">
       <view class="flex items-center" @click="onAvatar">
         <image :src="userStore.userInfo.avatar" class="h-16 w-16 rounded-full" />
         <view class="ml-4">
@@ -102,6 +106,15 @@ async function logout() {
       </view>
     </view>
     <view class="mx-4 overflow-hidden rounded-3 bg-white">
+      <view class="flex items-center justify-between px-4 py-4" @click="needLogin('/pages/history/history')">
+        <text>浏览记录</text>
+        <view class="flex items-center">
+          <text v-if="tokenStore.hasLogin" class="mr-2 text-xs text-faint">
+            {{ browseCount }} 条
+          </text>
+          <text class="i-carbon-chevron-right text-faint" />
+        </view>
+      </view>
       <view class="flex items-center justify-between px-4 py-4" @click="goOrders">
         <text>我的订单</text><text class="i-carbon-chevron-right text-faint" />
       </view>

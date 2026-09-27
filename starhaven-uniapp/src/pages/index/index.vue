@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BannerItem, HouseCard } from '@/api/types/stay'
-import { fetchBanners, fetchRecommendHouses, toggleFavorite } from '@/api/stay'
+import { fetchBanners, fetchRecommendHouses } from '@/api/stay'
 import { formatDateTrigger, overlayTitle } from './homeStay'
 import { ensureLogin } from '@/utils/toLoginPage'
 import dayjs from 'dayjs'
@@ -36,11 +36,11 @@ const dateTriggerText = computed(() => formatDateTrigger(calendarStart.value, ca
 const panelTitle = computed(() => overlay.value ? overlayTitle(overlay.value) : '')
 
 const categories = [
-  { label: '民宿', icon: 'i-tabler-building-cottage', tone: 'blue', query: '' },
-  { label: '公寓', icon: 'i-tabler-building-skyscraper', tone: 'green', query: 'houseType=APARTMENT' },
-  { label: '湖景', icon: 'i-tabler-ripple', tone: 'amber', query: 'keyword=湖景' },
-  { label: '独栋', icon: 'i-tabler-building-estate', tone: 'purple', query: 'houseType=VILLA' },
-  { label: '整套', icon: 'i-tabler-key', tone: 'rose', query: 'houseType=WHOLE' },
+  { key: 'minsu', label: '民宿', icon: 'i-tabler-building-cottage', tone: 'blue' },
+  { key: 'whole', label: '整套', icon: 'i-tabler-key', tone: 'rose' },
+  { key: 'room', label: '单间', icon: 'i-tabler-building-skyscraper', tone: 'green' },
+  { key: 'hotel', label: '套房', icon: 'i-tabler-building-estate', tone: 'purple' },
+  { key: 'lake', label: '湖景', icon: 'i-tabler-ripple', tone: 'amber' },
 ]
 
 onLoad(() => {
@@ -92,6 +92,10 @@ function goListing(extra = '') {
   uni.navigateTo({ url: `/pages/listing/listing${extra ? `?${extra}` : ''}` })
 }
 
+function goTopic(key: string) {
+  uni.navigateTo({ url: `/pages/topic/topic?key=${key}` })
+}
+
 function openOverlay(kind: 'date' | 'filter') {
   if (kind === 'date') {
     staySnapshot.start = calendarStart.value
@@ -125,14 +129,6 @@ function applyFilter() {
 
 function openFilter() {
   openOverlay('filter')
-}
-
-async function onFavorite(item: HouseCard) {
-  if (!ensureLogin()) {
-    return
-  }
-  const res = await toggleFavorite(item.id)
-  item.favorited = res.favorited
 }
 
 onShow(() => {
@@ -189,7 +185,7 @@ onShow(() => {
       </view>
 
       <view class="home__categories">
-        <view v-for="category in categories" :key="category.label" class="home__category" @click="goListing(category.query)">
+        <view v-for="category in categories" :key="category.label" class="home__category" @click="goTopic(category.key)">
           <view class="home__category-icon" :class="`home__category-icon--${category.tone}`">
             <view :class="category.icon" />
           </view>
@@ -216,7 +212,7 @@ onShow(() => {
           </view>
         </view>
 
-        <fg-house-card v-for="item in houses" :key="item.id" :item="item" @favorite="onFavorite" />
+        <fg-house-card v-for="item in houses" :key="item.id" :item="item" />
         <fg-empty
           v-if="!loading && !houses.length"
           :text="errorText || '暂无推荐房源'"
@@ -254,7 +250,7 @@ onShow(() => {
           </view>
           <view class="home__filter-group">
             <text>排序</text><view class="home__filter-row">
-              <view v-for="item in [{ label: '综合推荐', value: '' }, { label: '高分好评', value: 'SCORE' }, { label: '价格优先', value: 'PRICE_ASC' }]" :key="item.value || 'recommend'" class="home__option" :class="{ 'home__option--on': filterSelection.sort === item.value }" @click="filterSelection.sort = item.value">
+              <view v-for="item in [{ label: '综合推荐', value: '' }, { label: '高分好评', value: 'SCORE_DESC' }, { label: '价格优先', value: 'PRICE_ASC' }]" :key="item.value || 'recommend'" class="home__option" :class="{ 'home__option--on': filterSelection.sort === item.value }" @click="filterSelection.sort = item.value">
                 {{ item.label }}
               </view>
             </view>

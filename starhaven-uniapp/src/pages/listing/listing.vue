@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { HouseCard } from '@/api/types/stay'
-import { fetchHousePage, toggleFavorite } from '@/api/stay'
-import { ensureLogin } from '@/utils/toLoginPage'
+import { fetchHousePage, searchHouses } from '@/api/stay'
 
 definePage({
   style: {
@@ -31,7 +30,8 @@ async function load(reset = false) {
     query.page = 1
   loading.value = true
   try {
-    const res = await fetchHousePage(query)
+    const fetcher = query.keyword.trim() ? searchHouses : fetchHousePage
+    const res = await fetcher(query)
     total.value = res.total
     list.value = reset ? res.list : [...list.value, ...res.list]
   }
@@ -50,14 +50,6 @@ function goBack() {
 
 function goSearch() {
   uni.navigateTo({ url: '/pages/search/search' })
-}
-
-async function onFavorite(item: HouseCard) {
-  if (!ensureLogin()) {
-    return
-  }
-  const res = await toggleFavorite(item.id)
-  item.favorited = res.favorited
 }
 
 onLoad((options) => {
@@ -110,7 +102,7 @@ onReachBottom(() => {
       </view>
     </view>
     <view class="listing__body">
-      <fg-house-card v-for="item in list" :key="item.id" :item="item" @favorite="onFavorite" />
+      <fg-house-card v-for="item in list" :key="item.id" :item="item" />
       <fg-empty v-if="!loading && !list.length" text="没有找到符合条件的房源" />
       <view v-if="loading" class="listing__loading">
         正在为你寻找合适的房间…

@@ -16,7 +16,7 @@ onShow(async () => {
     hot.value = await fetchHotKeywords()
   }
   catch {
-    hot.value = ['东京', '京都', '北海道', '海景房']
+    hot.value = ['海景', '庭院', '阁楼', '整套']
   }
   if (!tokenStore.updateNowTime().hasLogin) {
     history.value = []

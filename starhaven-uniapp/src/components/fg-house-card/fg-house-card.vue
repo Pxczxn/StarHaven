@@ -5,10 +5,6 @@ defineProps<{
   item: HouseCard
 }>()
 
-const emit = defineEmits<{
-  (e: 'favorite', item: HouseCard): void
-}>()
-
 function openDetail(id: number) {
   uni.navigateTo({ url: `/pages/detail/detail?id=${id}` })
 }
@@ -18,13 +14,6 @@ function openDetail(id: number) {
   <view class="card" @click="openDetail(item.id)">
     <view class="card__media">
       <image :src="item.coverImage" mode="aspectFill" class="card__img" />
-      <view
-        class="card__fav"
-        :class="{ 'card__fav--on': item.favorited }"
-        @click.stop="emit('favorite', item)"
-      >
-        <view :class="item.favorited ? 'i-carbon-favorite-filled' : 'i-carbon-favorite'" />
-      </view>
     </view>
     <view class="card__body">
       <view class="card__title">
@@ -67,24 +56,6 @@ function openDetail(id: number) {
   display: block;
   width: 100%;
   height: 156px;
-}
-
-.card__fav {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 32px;
-  height: 32px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #3882f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card__fav--on {
-  color: #e11d48;
 }
 
 .card__body {

@@ -97,6 +97,16 @@ export default defineConfig({
     'i-tabler-bookmark',
     'i-tabler-receipt-2',
     'i-tabler-user-circle',
+    'i-tabler-heart',
+    'i-tabler-heart-search',
+    'i-tabler-arrow-right',
+    'i-tabler-luggage',
+    'i-tabler-receipt',
+    'i-tabler-calendar-event',
+    'i-tabler-calendar-smile',
+    'i-tabler-users',
+    'i-tabler-door',
+    'i-tabler-chevron-right',
   ],
   rules: [
     [
