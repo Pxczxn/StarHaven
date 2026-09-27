@@ -78,13 +78,13 @@ design/
 /*.jpeg
 /*.webp
 
-# 开发资料
-docs/
-doc/
+# 开发资料（限定顶层，避免误伤 src/ 下的同名源码目录，如 src/http/tools/）
+/docs/
+/doc/
 *.md
 !/README.md
-qa/
-tools/
+/qa/
+/tools/
 
 # uni-app 生成文件（由 manifest.config.ts / pages.config.ts 生成）
 src/types

@@ -103,16 +103,16 @@ starhaven-admin/*.png
 starhaven-admin/*.jpg
 starhaven-uniapp/img.png
 
-# 开发资料与个人工具
-docs/
-doc/
+# 开发资料与个人工具（限定顶层，避免误伤 src/ 下的同名源码目录）
+/docs/
+/doc/
 *.md
 !/README.md
 !/starhaven-server/README.md
 !/starhaven-uniapp/README.md
 !/starhaven-admin/README.md
-qa/
-tools/
+/qa/
+/tools/
 
 # 操作系统
 .DS_Store
