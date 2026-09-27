@@ -139,6 +139,17 @@ export function getEnvBaseUrl() {
   return baseUrl
 }
 
+export function resolveMediaUrl(url?: string) {
+  if (!url) {
+    return ''
+  }
+  if (/^https?:\/\//i.test(url)) {
+    return url
+  }
+  const base = String(getEnvBaseUrl() || '').replace(/\/$/, '')
+  return url.startsWith('/') ? `${base}${url}` : `${base}/${url}`
+}
+
 /**
  * 是否是双token模式
  */

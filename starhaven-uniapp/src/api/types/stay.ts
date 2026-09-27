@@ -8,6 +8,7 @@ export interface HouseCard {
   avgScore: number
   commentCount: number
   facilities?: string[]
+  houseType?: string
   favorited?: boolean
 }
 

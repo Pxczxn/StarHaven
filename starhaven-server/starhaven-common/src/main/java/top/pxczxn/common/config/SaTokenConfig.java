@@ -21,6 +21,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         .match("/api/v1/message/**")
                         .match("/api/v1/coupon/**")
                         .match("/api/v1/host/**")
+                        .match("/api/v1/browse/**")
                         .match("/api/v1/search/history")
                         .match("/admin/**")
                         .check(r -> StpUtil.checkLogin())))
@@ -30,7 +31,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
                         "/webjars/**",
                         "/v3/api-docs/**",
                         "/swagger-resources/**",
-                        "/favicon.ico"
+                        "/favicon.ico",
+                        "/houses/**",
+                        "/banners/**"
                 );
     }
 }

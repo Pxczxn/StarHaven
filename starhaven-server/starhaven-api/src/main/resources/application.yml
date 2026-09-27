@@ -4,6 +4,7 @@ server:
 
 starhaven:
   admin-port: 5568
+  public-url: http://127.0.0.1:5567
 
 spring:
   application:

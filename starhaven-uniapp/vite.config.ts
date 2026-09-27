@@ -215,6 +215,14 @@ export default defineConfig(({ command, mode }) => {
               rewrite: path =>
                 path.replace(new RegExp(`^${VITE_APP_PROXY_PREFIX}`), ''),
             },
+            '/houses': {
+              target: VITE_SERVER_BASEURL,
+              changeOrigin: true,
+            },
+            '/banners': {
+              target: VITE_SERVER_BASEURL,
+              changeOrigin: true,
+            },
           }
         : undefined,
     },

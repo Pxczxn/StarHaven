@@ -1,24 +1,43 @@
 import type { BannerItem, CommentItem, CouponItem, HouseCard, HouseDetail, MessageItem, OrderItem, PageData } from './types/stay'
 import { http } from '@/http/http'
+import { resolveMediaUrl } from '@/utils'
 
-export function fetchBanners() {
-  return http.get<BannerItem[]>('/api/v1/banner/list')
+function withHouseMedia(item: HouseCard): HouseCard {
+  return { ...item, coverImage: resolveMediaUrl(item.coverImage) }
 }
 
-export function fetchRecommendHouses() {
-  return http.get<HouseCard[]>('/api/v1/house/recommend')
+function withPageMedia(page: PageData<HouseCard>): PageData<HouseCard> {
+  return { ...page, list: (page.list || []).map(withHouseMedia) }
 }
 
-export function fetchHousePage(query: Record<string, any>) {
-  return http.get<PageData<HouseCard>>('/api/v1/house/page', query)
+export async function fetchBanners() {
+  const list = await http.get<BannerItem[]>('/api/v1/banner/list')
+  return (list || []).map(item => ({ ...item, imageUrl: resolveMediaUrl(item.imageUrl) }))
 }
 
-export function fetchHouseDetail(id: number) {
-  return http.get<HouseDetail>(`/api/v1/house/${id}`)
+export async function fetchRecommendHouses() {
+  const list = await http.get<HouseCard[]>('/api/v1/house/recommend')
+  return (list || []).map(withHouseMedia)
 }
 
-export function searchHouses(query: Record<string, any>) {
-  return http.get<PageData<HouseCard>>('/api/v1/search', query)
+export async function fetchHousePage(query: Record<string, any>) {
+  const page = await http.get<PageData<HouseCard>>('/api/v1/house/page', query)
+  return withPageMedia(page)
+}
+
+export async function fetchHouseDetail(id: number) {
+  const data = await http.get<HouseDetail>(`/api/v1/house/${id}`)
+  return {
+    ...data,
+    coverImage: resolveMediaUrl(data.coverImage),
+    hostAvatar: resolveMediaUrl(data.hostAvatar),
+    images: (data.images || []).map(img => resolveMediaUrl(img)),
+  }
+}
+
+export async function searchHouses(query: Record<string, any>) {
+  const page = await http.get<PageData<HouseCard>>('/api/v1/search', query)
+  return withPageMedia(page)
 }
 
 export function fetchHotKeywords() {
@@ -37,8 +56,9 @@ export function toggleFavorite(houseId: number) {
   return http.post<{ favorited: boolean }>('/api/v1/favorite/toggle', undefined, { houseId })
 }
 
-export function fetchFavorites(page = 1, size = 10) {
-  return http.get<PageData<HouseCard>>('/api/v1/favorite/list', { page, size })
+export async function fetchFavorites(page = 1, size = 10) {
+  const data = await http.get<PageData<HouseCard>>('/api/v1/favorite/list', { page, size })
+  return withPageMedia(data)
 }
 
 export function createOrder(data: Record<string, any>) {
@@ -63,6 +83,23 @@ export function createPay(orderId: number, payType: string) {
 
 export function mockPaySuccess(orderId: number) {
   return http.post<void>('/api/v1/pay/mockSuccess', undefined, { orderId })
+}
+
+export function recordBrowse(houseId: number) {
+  return http.post<void>(`/api/v1/browse/record/${houseId}`)
+}
+
+export async function fetchBrowseHistory() {
+  const list = await http.get<HouseCard[]>('/api/v1/browse/history')
+  return (list || []).map(withHouseMedia)
+}
+
+export function fetchBrowseCount() {
+  return http.get<number>('/api/v1/browse/count')
+}
+
+export function clearBrowseHistory() {
+  return http.delete<void>('/api/v1/browse/history')
 }
 
 export function fetchComments(houseId: number) {

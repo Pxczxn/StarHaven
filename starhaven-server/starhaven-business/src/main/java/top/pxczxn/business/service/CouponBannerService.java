@@ -10,6 +10,7 @@ import top.pxczxn.business.mapper.CouponMapper;
 import top.pxczxn.business.mapper.CouponUserMapper;
 import top.pxczxn.business.vo.BannerVO;
 import top.pxczxn.business.vo.CouponVO;
+import top.pxczxn.common.web.MediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class CouponBannerService {
     private final CouponMapper couponMapper;
     private final CouponUserMapper couponUserMapper;
     private final BannerMapper bannerMapper;
+    private final MediaUrlResolver mediaUrlResolver;
 
     public List<BannerVO> banners() {
         return bannerMapper.selectList(Wrappers.<Banner>lambdaQuery()
@@ -32,6 +34,7 @@ public class CouponBannerService {
                 .map(item -> {
                     BannerVO vo = new BannerVO();
                     BeanUtils.copyProperties(item, vo);
+                    vo.setImageUrl(mediaUrlResolver.resolve(item.getImageUrl()));
                     return vo;
                 })
                 .toList();
